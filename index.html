@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Medical LLM A/B Test — Annotation Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+  <!-- Top Bar -->
+  <header class="border-b border-slate-200 bg-white sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold">🩺</div>
+        <div>
+          <h1 class="text-base font-semibold leading-tight">Medical LLM A/B Test</h1>
+          <p class="text-xs text-slate-500 leading-tight">Prescription Evaluation — Annotation Dashboard</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btn-evaluator" class="hidden text-xs px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition" title="평가자 정보 변경">
+          <span id="evaluator-label">평가자 미설정</span>
+        </button>
+        <button id="btn-guidelines" class="text-sm px-3 py-1.5 rounded-md border border-slate-300 hover:bg-slate-100 transition">📋 Guidelines</button>
+        <button id="btn-export" class="text-sm px-3 py-1.5 rounded-md bg-slate-900 text-white hover:bg-slate-700 transition">📦 Export JSONL</button>
+        <button id="btn-reset" class="text-sm px-3 py-1.5 rounded-md border border-rose-300 text-rose-600 hover:bg-rose-50 transition" title="모든 평가 초기화">🗑</button>
+      </div>
+    </div>
+
+    <!-- Progress strip -->
+    <div class="max-w-7xl mx-auto px-6 pb-3">
+      <div class="flex items-center gap-3">
+        <span id="progress-label" class="text-xs font-medium text-slate-600">0 / 0 Completed (0.0%)</span>
+        <div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+          <div id="progress-bar" class="h-full bg-emerald-500 transition-all duration-300" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Guidelines Drawer -->
+  <section id="guidelines-panel" class="hidden bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-6 py-5 prose prose-sm max-w-none">
+      <h3 class="!mt-0">📋 평가 가이드라인</h3>
+
+      <h4>점수 부여 기준 (1~5점)</h4>
+      <ul>
+        <li><strong>5점</strong>: 전문의가 외래에서 거의 그대로 참고할 수 있을 정도로 적절함</li>
+        <li><strong>4점</strong>: 전반적으로 적절하나, 일부 경미한 보완이나 확인이 필요함</li>
+        <li><strong>3점</strong>: 참고는 가능하지만, 실제 처방 전 의사의 수정·검토가 상당히 필요함</li>
+        <li><strong>2점</strong>: 중요한 오류나 누락이 있어 처방 보조 도구로 활용하기 어려움</li>
+        <li><strong>1점</strong>: 중대한 임상적/제도적 문제가 있어 실제 처방 보조에 부적절함</li>
+      </ul>
+
+      <h4>1-1. 임상적 안전성 및 타당성</h4>
+      <p>환자의 현재 상태, 검사 수치, 동반질환, 기존 치료력을 고려했을 때 처방 제안이 의학적으로 타당하고 안전한가?</p>
+      <ul>
+        <li>최신 당뇨병 진료지침 및 일반적인 임상 의사결정 흐름에 부합하는가?</li>
+        <li>신기능, 간기능, 저혈당 위험, 고령/취약성, 심혈관질환, CKD, HF 등 환자별 위험요인을 적절히 반영했는가?</li>
+        <li>금기/주의 약제를 피하고, 필요한 경우 용량 조절이나 감량을 제시했는가?</li>
+        <li>혈당 조절 상태 대비 불필요한 약제 추가, 과도한 증량, 부적절한 인슐린 강화 등 과잉 치료를 하지 않았는가?</li>
+        <li>반대로 필요한 치료 강화/감량/약제 변경을 놓치지 않았는가?</li>
+      </ul>
+
+      <h4>1-2. 보험·제도 부합성 및 실제 처방 가능성</h4>
+      <p>국내 보험 급여 기준과 실제 외래 처방 관행을 고려했을 때, 제안된 처방이 현실적으로 처방 가능한가?</p>
+      <ul>
+        <li>국내 건강보험 급여 기준 및 심사 기준에 부합하는가?</li>
+        <li>HbA1c, 선행 약제 사용 여부, 병용 제한, eGFR 기준 등 급여 판단 요소를 고려했는가?</li>
+        <li>급여 가능성이 불확실한 경우 명확히 표시했는가?</li>
+        <li>임상적 근거 없이 기존 약제를 과도하게 중단·교체하지 않았는가?</li>
+        <li>급여/비급여/보조 약제를 적절히 구분했는가?</li>
+      </ul>
+
+      <h4>1-3. 외래 활용성 및 가독성</h4>
+      <p>바쁜 외래 환경에서 의사가 빠르게 읽고 처방 의사결정에 활용하기 쉬운가?</p>
+      <ul>
+        <li>유지/중단/변경/신규 처방이 명확히 구분되어 있는가?</li>
+        <li>약제명, 용량, 빈도, 증량/감량 계획이 충분히 구체적인가?</li>
+        <li>처방 근거가 환자 정보와 연결되어 간결하게 설명되어 있는가?</li>
+        <li>추적 관찰 계획·다음 내원 시점·필요한 검사 항목이 환자 위험도에 맞게 제시되어 있는가?</li>
+        <li>불확실한 부분/추가 확인이 필요한 정보를 명확히 표시했는가?</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Main Layout -->
+  <main class="max-w-7xl mx-auto px-6 py-6 grid grid-cols-12 gap-6">
+
+    <!-- Sidebar Case List -->
+    <aside class="col-span-12 md:col-span-3">
+      <div class="bg-white border border-slate-200 rounded-xl p-4 sticky top-32">
+        <h2 class="text-sm font-semibold text-slate-700 mb-3 flex items-center justify-between">
+          <span>📂 Cases</span>
+          <span id="case-count" class="text-xs text-slate-400 font-normal">0</span>
+        </h2>
+        <ul id="case-list" class="space-y-1.5 max-h-[60vh] overflow-y-auto pr-1"></ul>
+
+        <div class="mt-4 pt-3 border-t border-slate-100">
+          <button id="btn-load-file" class="w-full text-xs px-3 py-1.5 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50">📁 JSON 파일 불러오기</button>
+          <input id="file-input" type="file" accept="application/json" class="hidden" />
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Panel -->
+    <section class="col-span-12 md:col-span-9 space-y-6">
+
+      <!-- Vignette -->
+      <article id="vignette-card" class="bg-white border border-slate-200 rounded-xl p-5">
+        <!-- rendered by JS -->
+      </article>
+
+      <!-- Side-by-side Comparison -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <article class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <header class="px-4 py-2.5 bg-gradient-to-r from-sky-50 to-white border-b border-slate-100 flex items-center gap-2">
+            <span class="w-7 h-7 rounded-md bg-sky-500 text-white flex items-center justify-center text-xs font-bold">A</span>
+            <h3 class="text-sm font-semibold text-slate-700">Model A 처방 제안</h3>
+          </header>
+          <div id="model-a" class="p-4 prose prose-sm max-w-none"></div>
+        </article>
+
+        <article class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <header class="px-4 py-2.5 bg-gradient-to-r from-violet-50 to-white border-b border-slate-100 flex items-center gap-2">
+            <span class="w-7 h-7 rounded-md bg-violet-500 text-white flex items-center justify-center text-xs font-bold">B</span>
+            <h3 class="text-sm font-semibold text-slate-700">Model B 처방 제안</h3>
+          </header>
+          <div id="model-b" class="p-4 prose prose-sm max-w-none"></div>
+        </article>
+      </div>
+
+      <!-- Evaluation Form -->
+      <article class="bg-white border border-slate-200 rounded-xl p-6">
+        <h2 class="text-base font-semibold text-slate-800 mb-1">📝 평가 항목</h2>
+        <p class="text-xs text-slate-500 mb-5">입력은 자동 저장되며, <b>완료 처리</b> 버튼을 눌러야 해당 케이스가 ✅ 완료로 표시됩니다.</p>
+
+        <!-- 1. Comprehensive -->
+        <section id="form-comprehensive" class="space-y-5"></section>
+
+        <!-- 2. Deductions -->
+        <section class="mt-8">
+          <h3 class="text-sm font-semibold text-slate-700 mb-2">2. 감점 사유 및 주요 문제 유형 <span class="text-xs text-slate-400 font-normal">(중복 선택 가능)</span></h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p class="text-xs font-medium text-sky-700 mb-2">Model A</p>
+              <div id="deductions-A" class="space-y-1.5"></div>
+            </div>
+            <div>
+              <p class="text-xs font-medium text-violet-700 mb-2">Model B</p>
+              <div id="deductions-B" class="space-y-1.5"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Preference -->
+        <section class="mt-8">
+          <h3 class="text-sm font-semibold text-slate-700 mb-2">3. 최종 활용 선호도</h3>
+          <p class="text-xs text-slate-500 mb-3">두 답변 중 실제 외래에서 처방 보조 도구로 더 참고하고 싶은 답변을 선택해 주십시오.</p>
+          <div id="preference-group" class="space-y-1.5"></div>
+        </section>
+
+        <!-- Save -->
+        <div class="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between gap-3">
+          <div id="save-status" class="text-xs text-slate-500">아직 저장되지 않음</div>
+          <button id="btn-save" class="text-sm px-4 py-2 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition shadow-sm">
+            💾 임시 저장 및 문항 완료 처리
+          </button>
+        </div>
+      </article>
+
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 hidden bg-slate-900 text-white text-sm px-4 py-2.5 rounded-lg shadow-lg z-50"></div>
+
+  <!-- Evaluator Setup Modal -->
+  <div id="evaluator-modal" class="hidden fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+      <div class="flex items-center gap-2 mb-1">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white">👤</div>
+        <h2 class="text-lg font-semibold">평가자 정보 입력</h2>
+      </div>
+      <p class="text-xs text-slate-500 mb-4">평가를 시작하기 전에 본인 정보를 입력해 주세요. 입력하신 정보는 결과 파일에 포함되어 식별에 사용됩니다. <b>브라우저에만 저장되며 외부로 전송되지 않습니다.</b></p>
+
+      <form id="evaluator-form" class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">이름 <span class="text-rose-500">*</span></label>
+          <input id="ev-name" type="text" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="예: 김민수" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">이메일 <span class="text-rose-500">*</span></label>
+          <input id="ev-email" type="email" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="예: dr.kim@hospital.kr" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">소속 <span class="text-slate-400">(선택)</span></label>
+          <input id="ev-affiliation" type="text" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="예: ㅇㅇ병원 내분비내과" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">직책/연차 <span class="text-slate-400">(선택)</span></label>
+          <input id="ev-role" type="text" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="예: 전문의 / 임상강사" />
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3">
+          <button type="button" id="ev-cancel" class="hidden text-sm px-3 py-1.5 rounded-md border border-slate-300 hover:bg-slate-100">취소</button>
+          <button type="submit" class="text-sm px-4 py-2 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 shadow-sm">시작하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
