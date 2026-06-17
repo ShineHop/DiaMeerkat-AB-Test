@@ -260,6 +260,7 @@
 
     // status
     updateSaveStatus(c.id);
+    updateSaveButton(c.id);
 
     // bind events
     bindFormEvents(c.id);
@@ -325,13 +326,32 @@
   const saveCurrent = () => {
     if (!currentId) return;
     const rec = ensureRecord(currentId);
-    rec.is_completed = true;
-    rec.saved_at = new Date().toISOString().slice(0, 19);
+    const willComplete = !rec.is_completed;
+    rec.is_completed = willComplete;
+    rec.saved_at = willComplete ? new Date().toISOString().slice(0, 19) : null;
     saveResults();
     renderCaseList();
     updateProgress();
     updateSaveStatus(currentId);
-    toast(`✅ ${currentId} 평가가 저장되었습니다.`);
+    updateSaveButton(currentId);
+    toast(willComplete
+      ? `✅ ${currentId} 평가가 저장되었습니다.`
+      : `↩ ${currentId} 완료 처리가 취소되었습니다.`);
+  };
+
+  const updateSaveButton = (id) => {
+    const btn = $('#btn-save');
+    if (!btn) return;
+    const rec = ensureRecord(id);
+    if (rec.is_completed) {
+      btn.textContent = '↩ 완료 처리 취소';
+      btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+      btn.classList.add('bg-slate-500', 'hover:bg-slate-600');
+    } else {
+      btn.textContent = '💾 임시 저장 및 문항 완료 처리';
+      btn.classList.remove('bg-slate-500', 'hover:bg-slate-600');
+      btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+    }
   };
 
   const exportJSONL = () => {
