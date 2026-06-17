@@ -317,7 +317,9 @@
     renderVignette(c);
     renderModelOutputs(c);
     renderEvaluationForm(c);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const scroller = document.getElementById('main-scroll');
+    if (scroller) scroller.scrollTo({ top: 0, behavior: 'smooth' });
+    else window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const saveCurrent = () => {
@@ -529,16 +531,9 @@
       }
     });
 
-    // Keep the sidebar's sticky offset in sync with the actual top-bar height
-    // (which changes when the Guidelines drawer expands or collapses).
-    const topbar = document.getElementById('topbar');
-    if (topbar && 'ResizeObserver' in window) {
-      const ro = new ResizeObserver(() => {
-        const h = topbar.getBoundingClientRect().height;
-        document.documentElement.style.setProperty('--sticky-top', `${Math.ceil(h) + 12}px`);
-      });
-      ro.observe(topbar);
-    }
+    // Topbar height tracking no longer needed: <main> is now the scroll
+    // container, so the sidebar sticks relative to <main>'s top (top-4),
+    // and the topbar stays visually fixed above it regardless of its height.
     $('#btn-export').addEventListener('click', exportJSONL);
     $('#btn-reset').addEventListener('click', resetAll);
     $('#btn-save').addEventListener('click', saveCurrent);
