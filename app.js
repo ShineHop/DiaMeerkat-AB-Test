@@ -7,12 +7,42 @@
   const DATA_URL = 'sample_data.json';
 
   const SCORE_DOMAINS = [
-    { key: 'clinical_safety', title: '1-1. 임상적 안전성 및 타당성',
-      desc: '환자의 현재 상태, 검사 수치, 동반질환, 기존 치료력을 고려했을 때 처방 제안이 의학적으로 타당하고 안전한가?' },
-    { key: 'insurance_compliance', title: '1-2. 보험·제도 부합성 및 실제 처방 가능성',
-      desc: '국내 보험 급여 기준과 실제 외래 처방 관행을 고려했을 때, 제안된 처방이 현실적으로 처방 가능한가?' },
-    { key: 'usability', title: '1-3. 외래 활용성 및 가독성',
-      desc: '바쁜 외래 환경에서 의사가 빠르게 읽고 처방 의사결정에 활용하기 쉬운가?' },
+    {
+      key: 'clinical_safety',
+      title: '1-1. 임상적 안전성 및 타당성',
+      desc: '환자의 현재 상태, 검사 수치, 동반질환, 기존 치료력을 고려했을 때 처방 제안이 의학적으로 타당하고 안전한가?',
+      considerations: [
+        '최신 당뇨병 진료지침 및 일반적인 임상 의사결정 흐름에 부합하는가?',
+        '신기능, 간기능, 저혈당 위험, 고령/취약성, 심혈관질환, CKD, HF 등 환자별 위험요인을 적절히 반영했는가?',
+        '금기 또는 주의가 필요한 약제를 피하고, 필요한 경우 용량 조절이나 감량을 제시했는가?',
+        '혈당 조절 상태에 비해 불필요한 약제 추가, 과도한 증량, 부적절한 인슐린 강화 등 과잉 치료를 하지 않았는가?',
+        '반대로 필요한 치료 강화, 감량, 약제 변경을 놓치지 않았는가?',
+      ],
+    },
+    {
+      key: 'insurance_compliance',
+      title: '1-2. 보험·제도 부합성 및 실제 처방 가능성',
+      desc: '국내 보험 급여 기준과 실제 외래 처방 관행을 고려했을 때, 제안된 처방이 현실적으로 처방 가능한가?',
+      considerations: [
+        '국내 건강보험 급여 기준 및 심사 기준에 부합하는 처방인가?',
+        'HbA1c 기준, 선행 약제 사용 여부, 병용 제한, eGFR 기준, 필요 서류 또는 진단 코드 등 급여 판단에 필요한 요소를 적절히 고려했는가?',
+        '급여 가능성이 불확실한 경우 이를 명확히 표시했는가?',
+        '기존 외래 처방과 비교했을 때, 임상적 근거 없이 기존 약제를 과도하게 중단·교체하지 않았는가?',
+        '급여 약제, 비급여 가능 약제, 기타 보조 약제를 적절히 구분했는가?',
+      ],
+    },
+    {
+      key: 'usability',
+      title: '1-3. 외래 활용성 및 가독성',
+      desc: '바쁜 외래 환경에서 의사가 빠르게 읽고 처방 의사결정에 활용하기 쉬운가?',
+      considerations: [
+        '유지, 중단, 변경, 신규 처방이 명확히 구분되어 있는가?',
+        '약제명, 용량, 빈도, 증량 또는 감량 계획이 충분히 구체적인가?',
+        '처방 근거가 환자 정보와 연결되어 간결하게 설명되어 있는가?',
+        '(만약, 다음 내용이 답변에 존재한다면) 추적 관찰 계획, 다음 내원 시점, 필요한 검사 항목이 환자 위험도에 맞게 제시되어 있는가?',
+        '불확실한 부분이나 추가 확인이 필요한 정보를 명확히 표시했는가?',
+      ],
+    },
   ];
 
   const DEDUCTIONS = [
@@ -36,7 +66,7 @@
   let currentId = null;
   /** @type {Record<string, any>} */
   let results = {};
-  /** @type {{name:string,email:string,affiliation?:string,role?:string,started_at?:string} | null} */
+  /** @type {{name:string,affiliation:string,role?:string,started_at?:string} | null} */
   let evaluator = null;
 
   // ---------------------------------------------------------------------------
@@ -146,11 +176,27 @@
     const compEl = $('#form-comprehensive');
     compEl.innerHTML = '';
     SCORE_DOMAINS.forEach(d => {
+      const considerationsHtml = (d.considerations || [])
+        .map(item => `<li>${escapeHtml(item)}</li>`)
+        .join('');
       const block = document.createElement('div');
       block.innerHTML = `
-        <h3 class="text-sm font-semibold text-slate-700">${escapeHtml(d.title)}</h3>
-        <p class="text-xs text-slate-500 mt-0.5 mb-3">${escapeHtml(d.desc)}</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex-1">
+            <h3 class="text-sm font-semibold text-slate-700">${escapeHtml(d.title)}</h3>
+            <p class="text-xs text-slate-500 mt-0.5">${escapeHtml(d.desc)}</p>
+          </div>
+          <button type="button" class="considerations-toggle shrink-0 text-[11px] px-2 py-1 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1"
+                  data-target="cons-${d.key}" aria-expanded="false">
+            <span>💡 평가 시 고려사항</span>
+            <span class="cons-chev transition-transform">▾</span>
+          </button>
+        </div>
+        <div id="cons-${d.key}" class="hidden mt-2 mb-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
+          <p class="text-xs font-medium text-amber-900 mb-1.5">평가 시 다음을 함께 고려해 주십시오.</p>
+          <ul class="list-disc pl-5 text-xs text-amber-900 space-y-1 leading-relaxed">${considerationsHtml}</ul>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
           ${['A', 'B'].map(side => `
             <div class="border border-slate-200 rounded-lg p-3 ${side === 'A' ? 'bg-sky-50/40' : 'bg-violet-50/40'}">
               <div class="flex items-center justify-between mb-2">
@@ -167,6 +213,19 @@
         </div>
       `;
       compEl.appendChild(block);
+    });
+
+    // wire up "평가 시 고려사항" toggles
+    compEl.querySelectorAll('.considerations-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(btn.dataset.target);
+        if (!target) return;
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!expanded));
+        target.classList.toggle('hidden');
+        const chev = btn.querySelector('.cons-chev');
+        if (chev) chev.style.transform = expanded ? '' : 'rotate(180deg)';
+      });
     });
 
     // 2. deductions
@@ -284,8 +343,7 @@
       const rec = ensureRecord(c.id);
       return JSON.stringify({
         evaluator_name: evaluator.name,
-        evaluator_email: evaluator.email,
-        evaluator_affiliation: evaluator.affiliation || null,
+        evaluator_affiliation: evaluator.affiliation,
         evaluator_role: evaluator.role || null,
         started_at: evaluator.started_at || null,
         exported_at,
@@ -324,7 +382,6 @@
     modal.classList.remove('hidden');
     if (evaluator) {
       $('#ev-name').value = evaluator.name || '';
-      $('#ev-email').value = evaluator.email || '';
       $('#ev-affiliation').value = evaluator.affiliation || '';
       $('#ev-role').value = evaluator.role || '';
     }
@@ -337,15 +394,14 @@
   const submitEvaluatorForm = (e) => {
     e.preventDefault();
     const name = $('#ev-name').value.trim();
-    const email = $('#ev-email').value.trim();
-    if (!name || !email) {
-      toast('❌ 이름과 이메일은 필수입니다.');
+    const affiliation = $('#ev-affiliation').value.trim();
+    if (!name || !affiliation) {
+      toast('❌ 이름과 소속은 필수입니다.');
       return;
     }
     evaluator = {
       name,
-      email,
-      affiliation: $('#ev-affiliation').value.trim(),
+      affiliation,
       role: $('#ev-role').value.trim(),
       started_at: evaluator?.started_at || new Date().toISOString().slice(0, 19),
     };

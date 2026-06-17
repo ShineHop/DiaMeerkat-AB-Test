@@ -49,7 +49,11 @@
     <div class="max-w-7xl mx-auto px-6 py-5 prose prose-sm max-w-none">
       <h3 class="!mt-0">📋 평가 가이드라인</h3>
 
-      <h4>점수 부여 기준 (1~5점)</h4>
+      <h4>1. 포괄 평가</h4>
+      <p>이 단계에서는 두 모델 답변 A와 B를 각각 독립적으로 평가해 주십시오.</p>
+      <p>두 답변 중 어느 것이 더 나은지를 먼저 판단하기보다는, 각 답변이 실제 외래 진료에서 처방 보조 도구로 활용될 수 있는지를 기준으로 아래 3개 항목에 대해 1~5점으로 평가해 주시면 됩니다.</p>
+
+      <p>점수는 각 항목별로 다음 기준에 따라 부여해 주십시오.</p>
       <ul>
         <li><strong>5점</strong>: 전문의가 외래에서 거의 그대로 참고할 수 있을 정도로 적절함</li>
         <li><strong>4점</strong>: 전반적으로 적절하나, 일부 경미한 보완이나 확인이 필요함</li>
@@ -57,35 +61,61 @@
         <li><strong>2점</strong>: 중요한 오류나 누락이 있어 처방 보조 도구로 활용하기 어려움</li>
         <li><strong>1점</strong>: 중대한 임상적/제도적 문제가 있어 실제 처방 보조에 부적절함</li>
       </ul>
+      <p>각 항목에서 감점이 필요한 경우, 이후의 세부 오류 태깅 문항에서 해당 사유를 표시해 주십시오.</p>
 
       <h4>1-1. 임상적 안전성 및 타당성</h4>
       <p>환자의 현재 상태, 검사 수치, 동반질환, 기존 치료력을 고려했을 때 처방 제안이 의학적으로 타당하고 안전한가?</p>
+      <p>평가 시 다음을 함께 고려해 주십시오.</p>
       <ul>
         <li>최신 당뇨병 진료지침 및 일반적인 임상 의사결정 흐름에 부합하는가?</li>
         <li>신기능, 간기능, 저혈당 위험, 고령/취약성, 심혈관질환, CKD, HF 등 환자별 위험요인을 적절히 반영했는가?</li>
-        <li>금기/주의 약제를 피하고, 필요한 경우 용량 조절이나 감량을 제시했는가?</li>
-        <li>혈당 조절 상태 대비 불필요한 약제 추가, 과도한 증량, 부적절한 인슐린 강화 등 과잉 치료를 하지 않았는가?</li>
-        <li>반대로 필요한 치료 강화/감량/약제 변경을 놓치지 않았는가?</li>
+        <li>금기 또는 주의가 필요한 약제를 피하고, 필요한 경우 용량 조절이나 감량을 제시했는가?</li>
+        <li>혈당 조절 상태에 비해 불필요한 약제 추가, 과도한 증량, 부적절한 인슐린 강화 등 과잉 치료를 하지 않았는가?</li>
+        <li>반대로 필요한 치료 강화, 감량, 약제 변경을 놓치지 않았는가?</li>
       </ul>
 
       <h4>1-2. 보험·제도 부합성 및 실제 처방 가능성</h4>
       <p>국내 보험 급여 기준과 실제 외래 처방 관행을 고려했을 때, 제안된 처방이 현실적으로 처방 가능한가?</p>
+      <p>평가 시 다음을 함께 고려해 주십시오.</p>
       <ul>
-        <li>국내 건강보험 급여 기준 및 심사 기준에 부합하는가?</li>
-        <li>HbA1c, 선행 약제 사용 여부, 병용 제한, eGFR 기준 등 급여 판단 요소를 고려했는가?</li>
-        <li>급여 가능성이 불확실한 경우 명확히 표시했는가?</li>
-        <li>임상적 근거 없이 기존 약제를 과도하게 중단·교체하지 않았는가?</li>
-        <li>급여/비급여/보조 약제를 적절히 구분했는가?</li>
+        <li>국내 건강보험 급여 기준 및 심사 기준에 부합하는 처방인가?</li>
+        <li>HbA1c 기준, 선행 약제 사용 여부, 병용 제한, eGFR 기준, 필요 서류 또는 진단 코드 등 급여 판단에 필요한 요소를 적절히 고려했는가?</li>
+        <li>급여 가능성이 불확실한 경우 이를 명확히 표시했는가?</li>
+        <li>기존 외래 처방과 비교했을 때, 임상적 근거 없이 기존 약제를 과도하게 중단·교체하지 않았는가?</li>
+        <li>급여 약제, 비급여 가능 약제, 기타 보조 약제를 적절히 구분했는가?</li>
       </ul>
 
       <h4>1-3. 외래 활용성 및 가독성</h4>
       <p>바쁜 외래 환경에서 의사가 빠르게 읽고 처방 의사결정에 활용하기 쉬운가?</p>
+      <p>평가 시 다음을 함께 고려해 주십시오.</p>
       <ul>
-        <li>유지/중단/변경/신규 처방이 명확히 구분되어 있는가?</li>
-        <li>약제명, 용량, 빈도, 증량/감량 계획이 충분히 구체적인가?</li>
+        <li>유지, 중단, 변경, 신규 처방이 명확히 구분되어 있는가?</li>
+        <li>약제명, 용량, 빈도, 증량 또는 감량 계획이 충분히 구체적인가?</li>
         <li>처방 근거가 환자 정보와 연결되어 간결하게 설명되어 있는가?</li>
-        <li>추적 관찰 계획·다음 내원 시점·필요한 검사 항목이 환자 위험도에 맞게 제시되어 있는가?</li>
-        <li>불확실한 부분/추가 확인이 필요한 정보를 명확히 표시했는가?</li>
+        <li>(만약, 다음 내용이 답변에 존재한다면) 추적 관찰 계획, 다음 내원 시점, 필요한 검사 항목이 환자 위험도에 맞게 제시되어 있는가?</li>
+        <li>불확실한 부분이나 추가 확인이 필요한 정보를 명확히 표시했는가?</li>
+      </ul>
+
+      <hr/>
+
+      <h4>2. 감점 사유 및 주요 문제 유형</h4>
+      <p>앞선 포괄 평가에서 각 모델 답변에 감점을 주셨다면, 감점의 원인이 된 문제 유형을 아래에서 선택해 주십시오. 중복 선택 가능하며, 해당 사항이 없으면 비워두셔도 됩니다.</p>
+      <ul>
+        <li>절대 금기 약물 포함 (임상 안전 위반)</li>
+        <li>환자의 특정 기저질환(예: 신기능 저하 eGFR) 누락/미반영</li>
+        <li>불필요한 과잉 처방 (Over-expansion)</li>
+        <li>명백한 국내 보험 규정 위반 (삭감 대상)</li>
+        <li>의학적 사실 왜곡 (Hallucination)</li>
+        <li>기존 처방 체계 보존 실패 / 불필요한 처방 변경</li>
+      </ul>
+
+      <h4>3. 최종 활용 선호도</h4>
+      <p>앞선 평가 항목을 종합하여, 두 모델 답변 중 실제 외래에서 처방 보조 도구로 더 참고하고 싶은 답변을 선택해 주십시오. 임상적 안전성, 보험·제도 부합성, 실제 외래에서의 활용 가능성을 함께 고려해 판단해 주십시오.</p>
+      <ul>
+        <li>A 답변을 더 참고하고 싶음</li>
+        <li>B 답변을 더 참고하고 싶음</li>
+        <li>두 답변 간 처방 보조 관점에서 유의미한 차이 없음</li>
+        <li>두 답변 모두 실제 처방 보조 도구로 사용하기 어려움</li>
       </ul>
     </div>
   </section>
@@ -196,12 +226,8 @@
           <input id="ev-name" type="text" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="예: 김민수" />
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">이메일 <span class="text-rose-500">*</span></label>
-          <input id="ev-email" type="email" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="예: dr.kim@hospital.kr" />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">소속 <span class="text-slate-400">(선택)</span></label>
-          <input id="ev-affiliation" type="text" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="예: ㅇㅇ병원 내분비내과" />
+          <label class="block text-xs font-medium text-slate-600 mb-1">소속 <span class="text-rose-500">*</span></label>
+          <input id="ev-affiliation" type="text" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="예: ㅇㅇ병원 내분비내과" />
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">직책/연차 <span class="text-slate-400">(선택)</span></label>
