@@ -54,12 +54,77 @@
 
   <!-- Guidelines Drawer (pinned, internally scrollable) -->
   <section id="guidelines-panel" class="hidden bg-amber-50/40 border-t border-amber-200">
-    <div class="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between">
-      <span class="text-[11px] font-semibold text-amber-800 uppercase tracking-wide">📋 평가 가이드라인 — 아래 박스 내부에서 스크롤됩니다</span>
+    <div class="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between gap-3 flex-wrap">
+      <div class="inline-flex rounded-md border border-amber-300 bg-white overflow-hidden text-[12px] font-medium shadow-sm">
+        <button id="tab-system" data-tab="system" class="gl-tab px-3 py-1 text-amber-900 bg-amber-100 border-r border-amber-200">🛠 시스템 사용법</button>
+        <button id="tab-eval" data-tab="eval" class="gl-tab px-3 py-1 text-slate-600 hover:bg-amber-50">📋 평가 가이드라인</button>
+      </div>
       <button id="btn-guidelines-close" class="text-[11px] text-slate-500 hover:text-slate-800">접기 ✕</button>
     </div>
     <div class="max-w-7xl mx-auto px-6 pb-3">
       <div class="max-h-[26vh] overflow-y-auto pr-3 prose prose-sm max-w-none bg-white border border-amber-200 rounded-lg p-4 shadow-inner">
+
+      <!-- TAB 1: 시스템 사용법 -->
+      <div id="gl-pane-system" class="gl-pane">
+        <h3 class="!mt-0">🛠 시스템 사용법</h3>
+
+        <p class="!text-emerald-700 font-medium border-l-4 border-emerald-400 bg-emerald-50 px-3 py-2 rounded-r">
+          본 시스템은 두 모델(A·B)이 생성한 처방안을 비교 평가하기 위한 도구입니다. 아래 순서대로 진행해 주십시오.
+        </p>
+
+        <h4>① 평가자 정보 입력</h4>
+        <ul>
+          <li>최초 접속 시 <strong>이름</strong>과 <strong>소속</strong>을 입력합니다 (직책/연차는 선택).</li>
+          <li>입력 정보는 결과 파일에 자동으로 포함되며, <strong>본인 브라우저에만 저장</strong>됩니다.</li>
+          <li>상단 우측의 <code>👤 이름</code> 칩을 클릭하면 언제든지 수정할 수 있습니다.</li>
+        </ul>
+
+        <h4>② EMR 케이스 선택</h4>
+        <ul>
+          <li>좌측 <strong>📂 Cases</strong> 목록에서 평가할 EMR 케이스를 클릭합니다.</li>
+          <li>각 케이스 좌측 점은 상태를 표시합니다 — <strong>회색</strong>: 미완료 / <strong>초록</strong>: 저장 완료.</li>
+          <li>상단 진행률 바와 사이드바 카운터로 전체 진행 상황을 확인할 수 있습니다.</li>
+        </ul>
+
+        <h4>③ 두 모델 답변 비교</h4>
+        <ul>
+          <li>환자 임상 정보(나이, HbA1c, eGFR, 동반질환, 현재 처방 등)를 확인합니다.</li>
+          <li>좌(<strong>Model A</strong>) / 우(<strong>Model B</strong>) 처방안을 비교합니다.</li>
+          <li class="!text-rose-600"><strong>※ A·B는 각 케이스마다 무작위로 배정됩니다. 라벨에 영향받지 말고 독립적으로 평가하십시오.</strong></li>
+        </ul>
+
+        <h4>④ 평가 항목 작성</h4>
+        <ul>
+          <li><strong>1. 포괄 평가</strong>: 3개 도메인(임상적 안전성 / 보험·제도 / 외래 활용성)에 대해 1~5점 슬라이더로 A·B 각각 채점.</li>
+          <li>각 도메인 우측의 <strong>💡 평가 시 고려사항</strong> 버튼을 누르면 세부 평가 기준이 펼쳐집니다.</li>
+          <li><strong>2. 감점 사유</strong>: 감점한 경우 해당 문제 유형을 다중 선택 (해당 없으면 비워두어도 됨).</li>
+          <li><strong>3. 최종 활용 선호도</strong>: 종합적으로 어느 답변이 더 참고할 만한지 단일 선택.</li>
+        </ul>
+
+        <h4>⑤ 저장 및 다음 케이스로 이동</h4>
+        <ul>
+          <li>입력 즉시 자동 저장되며, 케이스를 옮겨도 입력 내용은 유지됩니다.</li>
+          <li>케이스 평가를 마쳤다면 하단의 <strong>💾 임시 저장 및 문항 완료 처리</strong> 버튼을 누릅니다 — 해당 케이스가 초록색 ✅ 완료 상태로 표시됩니다.</li>
+          <li>완료 처리 후에도 다시 들어와 수정/재저장 가능합니다.</li>
+        </ul>
+
+        <h4>⑥ 결과 파일 회신</h4>
+        <ul>
+          <li>모든 케이스를 완료한 뒤, 상단 우측의 <strong>📦 Export JSONL</strong> 버튼을 클릭합니다.</li>
+          <li><code>ab_test_<em>이름_날짜</em>.jsonl</code> 파일이 다운로드됩니다.</li>
+          <li>다운로드된 파일을 <strong>이메일/메신저로 회신</strong>해 주십시오.</li>
+        </ul>
+
+        <h4>⚠ 주의 사항</h4>
+        <ul>
+          <li><strong>↻ 초기화</strong> 버튼은 현재 브라우저에 저장된 <strong>모든 평가 내용을 지웁니다</strong>. 신중히 사용해 주십시오.</li>
+          <li>평가 내용은 본인 브라우저에만 저장됩니다. 다른 기기/브라우저에서는 별도 진행이 됩니다.</li>
+          <li>브라우저 데이터(쿠키/사이트 데이터)를 삭제하면 평가 내용도 함께 삭제될 수 있으니, 중간중간 Export JSONL로 백업을 권장합니다.</li>
+        </ul>
+      </div>
+
+      <!-- TAB 2: 평가 가이드라인 -->
+      <div id="gl-pane-eval" class="gl-pane hidden">
       <h3 class="!mt-0">📋 평가 가이드라인</h3>
 
       <h4>1. 포괄 평가</h4>
@@ -131,7 +196,8 @@
         <li>두 답변 간 처방 보조 관점에서 유의미한 차이 없음</li>
         <li>두 답변 모두 실제 처방 보조 도구로 사용하기 어려움</li>
       </ul>
-      </div>
+      </div><!-- /#gl-pane-eval -->
+      </div><!-- /scrollable inner -->
     </div>
   </section>
 

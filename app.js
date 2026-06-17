@@ -517,6 +517,20 @@
       else panel.classList.toggle('hidden');
     };
 
+    const setGuidelinesTab = (tab) => {
+      const panes = { system: $('#gl-pane-system'), eval: $('#gl-pane-eval') };
+      const tabs = { system: $('#tab-system'), eval: $('#tab-eval') };
+      Object.entries(panes).forEach(([k, el]) => el && el.classList.toggle('hidden', k !== tab));
+      Object.entries(tabs).forEach(([k, el]) => {
+        if (!el) return;
+        const active = k === tab;
+        el.classList.toggle('bg-amber-100', active);
+        el.classList.toggle('text-amber-900', active);
+        el.classList.toggle('text-slate-600', !active);
+        el.classList.toggle('hover:bg-amber-50', !active);
+      });
+    };
+
     // Delegated handler: works even if the button is re-rendered, and
     // survives any timing/ordering issues between DOMContentLoaded and init.
     document.addEventListener('click', (e) => {
@@ -528,8 +542,14 @@
       } else if (target.closest('#btn-guidelines')) {
         e.preventDefault();
         toggleGuidelines();
+      } else if (target.closest('.gl-tab')) {
+        const tab = target.closest('.gl-tab').dataset.tab;
+        if (tab) setGuidelinesTab(tab);
       }
     });
+
+    // default tab on first render
+    setGuidelinesTab('system');
 
     // Topbar height tracking no longer needed: <main> is now the scroll
     // container, so the sidebar sticks relative to <main>'s top (top-4),
