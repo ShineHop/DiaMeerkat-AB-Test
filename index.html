@@ -13,8 +13,11 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased">
 
+  <!-- Sticky Top Stack: Header + Guidelines (both pinned together) -->
+  <div id="topbar" class="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm">
+
   <!-- Top Bar -->
-  <header class="border-b border-slate-200 bg-white sticky top-0 z-30">
+  <header>
     <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold">🩺</div>
@@ -44,9 +47,14 @@
     </div>
   </header>
 
-  <!-- Guidelines Drawer -->
-  <section id="guidelines-panel" class="hidden bg-white border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-6 py-5 prose prose-sm max-w-none">
+  <!-- Guidelines Drawer (pinned, internally scrollable) -->
+  <section id="guidelines-panel" class="hidden bg-amber-50/40 border-t border-amber-200">
+    <div class="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between">
+      <span class="text-[11px] font-semibold text-amber-800 uppercase tracking-wide">📋 평가 가이드라인 — 아래 박스 내부에서 스크롤됩니다</span>
+      <button id="btn-guidelines-close" class="text-[11px] text-slate-500 hover:text-slate-800">접기 ✕</button>
+    </div>
+    <div class="max-w-7xl mx-auto px-6 pb-3">
+      <div class="max-h-[26vh] overflow-y-auto pr-3 prose prose-sm max-w-none bg-white border border-amber-200 rounded-lg p-4 shadow-inner">
       <h3 class="!mt-0">📋 평가 가이드라인</h3>
 
       <h4>1. 포괄 평가</h4>
@@ -117,15 +125,18 @@
         <li>두 답변 간 처방 보조 관점에서 유의미한 차이 없음</li>
         <li>두 답변 모두 실제 처방 보조 도구로 사용하기 어려움</li>
       </ul>
+      </div>
     </div>
   </section>
+
+  </div><!-- /#topbar -->
 
   <!-- Main Layout -->
   <main class="max-w-7xl mx-auto px-6 py-6 grid grid-cols-12 gap-6">
 
     <!-- Sidebar Case List -->
     <aside class="col-span-12 md:col-span-3">
-      <div class="bg-white border border-slate-200 rounded-xl p-4 sticky top-32">
+      <div class="bg-white border border-slate-200 rounded-xl p-4 sticky" style="top: var(--sticky-top, 8rem)">
         <h2 class="text-sm font-semibold text-slate-700 mb-3 flex items-center justify-between">
           <span>📂 Cases</span>
           <span id="case-count" class="text-xs text-slate-400 font-normal">0</span>

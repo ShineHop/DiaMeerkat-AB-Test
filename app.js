@@ -507,9 +507,24 @@
     updateEvaluatorChip();
     if (cases.length) selectCase(cases[0].id);
 
-    $('#btn-guidelines').addEventListener('click', () => {
-      $('#guidelines-panel').classList.toggle('hidden');
-    });
+    const toggleGuidelines = (forceClose) => {
+      const panel = $('#guidelines-panel');
+      if (forceClose) panel.classList.add('hidden');
+      else panel.classList.toggle('hidden');
+    };
+    $('#btn-guidelines').addEventListener('click', () => toggleGuidelines());
+    $('#btn-guidelines-close').addEventListener('click', () => toggleGuidelines(true));
+
+    // Keep the sidebar's sticky offset in sync with the actual top-bar height
+    // (which changes when the Guidelines drawer expands or collapses).
+    const topbar = document.getElementById('topbar');
+    if (topbar && 'ResizeObserver' in window) {
+      const ro = new ResizeObserver(() => {
+        const h = topbar.getBoundingClientRect().height;
+        document.documentElement.style.setProperty('--sticky-top', `${Math.ceil(h) + 12}px`);
+      });
+      ro.observe(topbar);
+    }
     $('#btn-export').addEventListener('click', exportJSONL);
     $('#btn-reset').addEventListener('click', resetAll);
     $('#btn-save').addEventListener('click', saveCurrent);
