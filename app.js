@@ -509,11 +509,25 @@
 
     const toggleGuidelines = (forceClose) => {
       const panel = $('#guidelines-panel');
-      if (forceClose) panel.classList.add('hidden');
+      if (!panel) return;
+      if (forceClose === true) panel.classList.add('hidden');
+      else if (forceClose === false) panel.classList.remove('hidden');
       else panel.classList.toggle('hidden');
     };
-    $('#btn-guidelines').addEventListener('click', () => toggleGuidelines());
-    $('#btn-guidelines-close').addEventListener('click', () => toggleGuidelines(true));
+
+    // Delegated handler: works even if the button is re-rendered, and
+    // survives any timing/ordering issues between DOMContentLoaded and init.
+    document.addEventListener('click', (e) => {
+      const target = e.target instanceof Element ? e.target : null;
+      if (!target) return;
+      if (target.closest('#btn-guidelines-close')) {
+        e.preventDefault();
+        toggleGuidelines(true);
+      } else if (target.closest('#btn-guidelines')) {
+        e.preventDefault();
+        toggleGuidelines();
+      }
+    });
 
     // Keep the sidebar's sticky offset in sync with the actual top-bar height
     // (which changes when the Guidelines drawer expands or collapses).

@@ -59,7 +59,8 @@
 
       <h4>1. 포괄 평가</h4>
       <p>이 단계에서는 두 모델 답변 A와 B를 각각 독립적으로 평가해 주십시오.</p>
-      <p>두 답변 중 어느 것이 더 나은지를 먼저 판단하기보다는, 각 답변이 실제 외래 진료에서 처방 보조 도구로 활용될 수 있는지를 기준으로 아래 3개 항목에 대해 1~5점으로 평가해 주시면 됩니다.</p>
+      <p class="!text-rose-600 font-medium border-l-4 border-rose-400 bg-rose-50 px-3 py-2 rounded-r"><strong>두 답변 중 어느 것이 더 나은지를 먼저 판단하기보다는, 각 답변이 실제 외래 진료에서 처방 보조 도구로 활용될 수 있는지를 기준으로 아래 3개 항목에 대해 1~5점으로 평가해 주시면 됩니다.</strong></p>
+      <p class="!text-rose-600 font-medium border-l-4 border-rose-400 bg-rose-50 px-3 py-2 rounded-r"><strong>※ Model A와 Model B는 각 EMR 케이스마다 무작위로 배정됩니다. A·B의 순서·라벨에 영향받지 마시고 각 답변을 독립적으로 평가해 주십시오.</strong></p>
 
       <p>점수는 각 항목별로 다음 기준에 따라 부여해 주십시오.</p>
       <ul>
@@ -157,6 +158,12 @@
       <article id="vignette-card" class="bg-white border border-slate-200 rounded-xl p-5">
         <!-- rendered by JS -->
       </article>
+
+      <!-- Randomization notice -->
+      <div class="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 flex items-start gap-2">
+        <span class="shrink-0">🎲</span>
+        <span><strong>Model A와 Model B는 각 EMR 케이스마다 무작위로 배정됩니다.</strong> A·B의 순서나 라벨에 영향받지 마시고, 각 답변을 독립적으로 평가해 주십시오.</span>
+      </div>
 
       <!-- Side-by-side Comparison -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
