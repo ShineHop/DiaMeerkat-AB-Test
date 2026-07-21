@@ -348,7 +348,7 @@
         <div class="flex items-center justify-between mb-1">
           <h2 class="text-base font-semibold text-slate-800">🆚 모델 답변 비교 (블라인드 A / B / C)</h2>
         </div>
-        <p class="text-xs text-slate-500 mb-3">각 공통 항목별로 세 모델(A/B/C)의 답변을 같은 행에 나란히 배치했습니다. 컬럼 위치(A→B→C)는 모든 항목에서 동일합니다.</p>
+        <p class="text-xs text-slate-500 mb-3">각 공통 항목별로 세 모델(A/B/C)의 답변을 같은 행에 나란히 배치했습니다.</p>
         <div class="cmp-grid cmp-header">${headerCols}</div>
         <div class="mt-2 space-y-4">${sectionsHtml}</div>
         <p class="cmp-title mt-4">🔍 원본 모델 답변 (Raw Output) — 필요 시 펼쳐 보기</p>
