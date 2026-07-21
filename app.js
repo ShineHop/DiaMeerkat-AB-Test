@@ -256,11 +256,25 @@
     const hba1c = grab(/Hb\s*A1c[^0-9\-]*([0-9]+\.?[0-9]*)/i);
     const egfr = grab(/eGFR[^0-9\-]*([0-9]+\.?[0-9]*)/i);
     const bmi = grab(/BMI[^0-9.]*([0-9]+\.?[0-9]*)/i);
-    const chips = [`<span class="sum-chip sum-id">Case ${escapeHtml(c.id)}</span>`];
-    if (hba1c) chips.push(`<span class="sum-chip">HbA1c ${escapeHtml(hba1c)}%</span>`);
-    if (egfr) chips.push(`<span class="sum-chip">eGFR ${escapeHtml(egfr)}</span>`);
-    if (bmi) chips.push(`<span class="sum-chip">BMI ${escapeHtml(bmi)}</span>`);
-    el.innerHTML = chips.join('');
+    const bp = grab(/([0-9]{2,3}\/[0-9]{2,3})\s*mmHg/);
+    const dmType = (note.match(/\b(T2DM|T1DM|LADA)\b/i) || [])[1];
+    const dmSince = grab(/(?:T2DM|T1DM|DM)\s*(?:since|,)?\s*([12][0-9]{3})/i);
+
+    const chip = (key, val, cls = '') =>
+      `<span class="sum-chip ${cls}"><span class="sum-key">${escapeHtml(key)}</span><span class="sum-val">${escapeHtml(val)}</span></span>`;
+
+    const chips = [];
+    if (dmType) chips.push(chip('진단', dmType + (dmSince ? ` (${dmSince}~)` : '')));
+    if (hba1c) chips.push(chip('HbA1c', `${hba1c}%`, 'sum-hl'));
+    if (egfr) chips.push(chip('eGFR', egfr, 'sum-hl'));
+    if (bmi) chips.push(chip('BMI', bmi));
+    if (bp) chips.push(chip('혈압', `${bp} mmHg`));
+
+    el.innerHTML =
+      `<span class="sum-label">🩺 환자 핵심 정보</span>` +
+      `<span class="sum-chip sum-id">Case ${escapeHtml(c.id)}</span>` +
+      chips.join('') +
+      (chips.length ? '' : `<span class="text-xs text-slate-500">자동 추출된 수치 없음 — 아래 EMR 전체를 확인하세요.</span>`);
   };
 
   const renderEMR = (c) => {
