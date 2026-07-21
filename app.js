@@ -167,6 +167,14 @@
   // ---------------------------------------------------------------------------
   const $ = (sel) => document.querySelector(sel);
 
+  // Remove standalone horizontal rules (---, ***, ___) the models emit as
+  // section separators; they render as clutter lines inside the answer cells.
+  // Table separator rows (|---|) start with '|' and are left untouched.
+  const stripRules = (t) => (t || '')
+    .replace(/^[ \t]*([-*_])(?:[ \t]*\1){2,}[ \t]*$/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
   // Render markdown while protecting LaTeX math ($...$ / $$...$$) from being
   // mangled by the markdown parser (e.g. underscores, backslashes, asterisks).
   // Math is swapped out for sentinel placeholders, markdown runs, then the
@@ -252,8 +260,6 @@
     if (hba1c) chips.push(`<span class="sum-chip">HbA1c ${escapeHtml(hba1c)}%</span>`);
     if (egfr) chips.push(`<span class="sum-chip">eGFR ${escapeHtml(egfr)}</span>`);
     if (bmi) chips.push(`<span class="sum-chip">BMI ${escapeHtml(bmi)}</span>`);
-    chips.push(`<span class="sum-chip">이전 처방 ${(emr.previous_prescription || []).length}건</span>`);
-    if (emr.source) chips.push(`<span class="sum-chip sum-src">${escapeHtml(emr.source)}</span>`);
     el.innerHTML = chips.join('');
   };
 
@@ -268,7 +274,6 @@
           <span class="text-xs px-2 py-0.5 rounded bg-slate-900 text-white font-mono">Case ${escapeHtml(c.id)}</span>
           <h2 class="text-base font-semibold text-slate-800">🏥 EMR — 외래 기록</h2>
         </div>
-        <span class="text-xs text-slate-400">source: ${escapeHtml(emr.source ?? '-')}</span>
       </div>
 
       <p class="text-xs font-semibold text-slate-600 mb-1">📄 외래 경과 기록 (Outpatient Note) — EMR 내용</p>
@@ -300,7 +305,7 @@
 
     let sectionsHtml = '';
     ANSWER_SECTIONS.forEach(sec => {
-      const texts = SLOTS.map(s => getSectionText(c[mapping[s]], sec.key, sec.sub));
+      const texts = SLOTS.map(s => stripRules(getSectionText(c[mapping[s]], sec.key, sec.sub)));
       if (!texts.some(t => t)) return; // hide sections empty across all models
       // 환자 상태 분석은 길어서 셀 내부 스크롤로 표시
       const scrollCls = sec.key === 'patient_status_analysis' ? ' cmp-cell--scroll' : '';
