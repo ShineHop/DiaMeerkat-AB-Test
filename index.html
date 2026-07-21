@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Diabetes LLM A/B Test — Annotation Dashboard</title>
+  <title>Medical LLM A/B/C Test — Annotation Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -11,19 +11,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased h-screen flex flex-col overflow-hidden">
-
-  <!-- Fixed Top Stack: Header + Guidelines (both pinned, do not scroll) -->
-  <div id="topbar" class="shrink-0 z-30 bg-white border-b border-slate-200 shadow-sm">
+<body class="bg-slate-50 text-slate-800 antialiased">
 
   <!-- Top Bar -->
-  <header>
-    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+  <header class="border-b border-slate-200 bg-white sticky top-0 z-30">
+    <div class="max-w-[100rem] mx-auto px-6 py-3 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold">🩺</div>
         <div>
-          <h1 class="text-base font-semibold leading-tight">Medical LLM A/B Test</h1>
-          <p class="text-xs text-slate-500 leading-tight">Prescription Evaluation — Annotation Dashboard</p>
+          <h1 class="text-base font-semibold leading-tight">Medical LLM A/B/C Test</h1>
+          <p class="text-xs text-slate-500 leading-tight">Prescription Evaluation — 3-Model Blind Annotation</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -32,17 +29,12 @@
         </button>
         <button id="btn-guidelines" class="text-sm px-3 py-1.5 rounded-md border border-slate-300 hover:bg-slate-100 transition">📋 Guidelines</button>
         <button id="btn-export" class="text-sm px-3 py-1.5 rounded-md bg-slate-900 text-white hover:bg-slate-700 transition">📦 Export JSONL</button>
-        <button id="btn-reset" class="text-sm px-3 py-1.5 rounded-md border border-rose-300 text-rose-600 hover:bg-rose-50 transition inline-flex items-center gap-1.5" title="모든 평가 초기화">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3.5 h-3.5">
-            <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z" clip-rule="evenodd"/>
-          </svg>
-          <span>초기화</span>
-        </button>
+        <button id="btn-reset" class="text-sm px-3 py-1.5 rounded-md border border-rose-300 text-rose-600 hover:bg-rose-50 transition" title="모든 평가 초기화">🗑</button>
       </div>
     </div>
 
     <!-- Progress strip -->
-    <div class="max-w-7xl mx-auto px-6 pb-3">
+    <div class="max-w-[100rem] mx-auto px-6 pb-3">
       <div class="flex items-center gap-3">
         <span id="progress-label" class="text-xs font-medium text-slate-600">0 / 0 Completed (0.0%)</span>
         <div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
@@ -52,88 +44,12 @@
     </div>
   </header>
 
-  <!-- Guidelines Drawer (pinned, internally scrollable) -->
-  <section id="guidelines-panel" class="hidden bg-amber-50/40 border-t border-amber-200">
-    <div class="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between gap-3 flex-wrap">
-      <div class="inline-flex rounded-md border border-amber-300 bg-white overflow-hidden text-[12px] font-medium shadow-sm">
-        <button id="tab-system" data-tab="system" class="gl-tab px-3 py-1 text-amber-900 bg-amber-100 border-r border-amber-200">🛠 시스템 사용법</button>
-        <button id="tab-eval" data-tab="eval" class="gl-tab px-3 py-1 text-slate-600 hover:bg-amber-50">📋 평가 가이드라인</button>
-      </div>
-      <button id="btn-guidelines-close" class="text-[11px] text-slate-500 hover:text-slate-800">접기 ✕</button>
-    </div>
-    <div class="max-w-7xl mx-auto px-6 pb-3">
-      <div class="max-h-[26vh] overflow-y-auto pr-3 prose prose-sm max-w-none bg-white border border-amber-200 rounded-lg p-4 shadow-inner">
-
-      <!-- TAB 1: 시스템 사용법 -->
-      <div id="gl-pane-system" class="gl-pane">
-        <h3 class="!mt-0">🛠 시스템 사용법</h3>
-
-        <p class="!text-emerald-700 font-medium border-l-4 border-emerald-400 bg-emerald-50 px-3 py-2 rounded-r">
-          본 시스템은 두 모델(A·B)이 생성한 처방안을 비교 평가하기 위한 도구입니다. 아래 순서대로 진행해 주십시오.
-        </p>
-
-        <h4>① 평가자 정보 입력</h4>
-        <ul>
-          <li>최초 접속 시 <strong>이름</strong>과 <strong>소속</strong>을 입력합니다 (직책/연차는 선택).</li>
-          <li>입력 정보는 결과 파일에 자동으로 포함되며, <strong>본인 브라우저에만 저장</strong>됩니다.</li>
-          <li>상단 우측의 <code>👤 이름</code> 칩을 클릭하면 언제든지 수정할 수 있습니다.</li>
-        </ul>
-
-        <h4>② EMR 케이스 선택</h4>
-        <ul>
-          <li>좌측 <strong>📂 Cases</strong> 목록에서 평가할 EMR 케이스를 클릭합니다.</li>
-          <li>각 케이스 좌측 점은 상태를 표시합니다 — <strong>회색</strong>: 미완료 / <strong>초록</strong>: 저장 완료.</li>
-          <li>상단 진행률 바와 사이드바 카운터로 전체 진행 상황을 확인할 수 있습니다.</li>
-        </ul>
-
-        <h4>③ 두 모델 답변 비교</h4>
-        <ul>
-          <li>환자 임상 정보(나이, HbA1c, eGFR, 동반질환, 현재 처방 등)를 확인합니다.</li>
-          <li>좌(<strong>Model A</strong>) / 우(<strong>Model B</strong>) 처방안을 비교합니다.</li>
-          <li class="!text-rose-600"><strong>※ A·B는 각 케이스마다 무작위로 배정됩니다. 라벨에 영향받지 말고 독립적으로 평가하십시오.</strong></li>
-        </ul>
-
-        <h4>④ 평가 항목 작성</h4>
-        <ul>
-          <li><strong>1. 포괄 평가</strong>: 3개 도메인(임상적 안전성 / 보험·제도 / 외래 활용성)에 대해 1~5점 슬라이더로 A·B 각각 채점.</li>
-          <li>각 도메인 우측의 <strong>💡 평가 시 고려사항</strong> 버튼을 누르면 세부 평가 기준이 펼쳐집니다.</li>
-          <li><strong>2. 감점 사유</strong>: 감점한 경우 해당 문제 유형을 다중 선택 (해당 없으면 비워두어도 됨).</li>
-          <li><strong>3. 최종 활용 선호도</strong>: 종합적으로 어느 답변이 더 참고할 만한지 단일 선택.</li>
-        </ul>
-
-        <h4>⑤ 저장 및 다음 케이스로 이동</h4>
-        <ul>
-          <li>입력 즉시 자동 저장되며, 케이스를 옮겨도 입력 내용은 유지됩니다.</li>
-          <li>케이스 평가를 마쳤다면 하단의 <strong>💾 임시 저장 및 문항 완료 처리</strong> 버튼을 누릅니다 — 해당 케이스가 초록색 ✅ 완료 상태로 표시됩니다.</li>
-          <li>완료 처리 후에도 다시 들어와 수정/재저장 가능합니다.</li>
-        </ul>
-
-        <h4>⑥ 결과 파일 회신</h4>
-        <ul>
-          <li>모든 케이스를 완료한 뒤, 상단 우측의 <strong>📦 Export JSONL</strong> 버튼을 클릭합니다.</li>
-          <li><code>ab_test_<em>이름_날짜</em>.jsonl</code> 파일이 다운로드됩니다.</li>
-          <li>다운로드된 파일을 <strong>이메일/메신저로 회신</strong>해 주십시오.</li>
-          <li>회신 메일 주소: sihyeon-park@korea.ac.kr</li>
-        </ul>
-
-        <h4>⚠ 주의 사항</h4>
-        <ul>
-          <li><strong>↻ 초기화</strong> 버튼은 현재 브라우저에 저장된 <strong>모든 평가 내용을 지웁니다</strong>. 신중히 사용해 주십시오.</li>
-          <li>평가 내용은 본인 브라우저에만 저장됩니다. 다른 기기/브라우저에서는 별도 진행이 됩니다.</li>
-          <li>브라우저 데이터(쿠키/사이트 데이터)를 삭제하면 평가 내용도 함께 삭제될 수 있으니, 중간중간 Export JSONL로 백업을 권장합니다.</li>
-        </ul>
-      </div>
-
-      <!-- TAB 2: 평가 가이드라인 -->
-      <div id="gl-pane-eval" class="gl-pane hidden">
+  <!-- Guidelines Drawer -->
+  <section id="guidelines-panel" class="hidden bg-white border-b border-slate-200">
+    <div class="max-w-[100rem] mx-auto px-6 py-5 prose prose-sm max-w-none">
       <h3 class="!mt-0">📋 평가 가이드라인</h3>
 
-      <h4>1. 포괄 평가</h4>
-      <p>이 단계에서는 두 모델 답변 A와 B를 각각 독립적으로 평가해 주십시오.</p>
-      <p class="!text-rose-600 font-medium border-l-4 border-rose-400 bg-rose-50 px-3 py-2 rounded-r"><strong>두 답변 중 어느 것이 더 나은지를 먼저 판단하기보다는, 각 답변이 실제 외래 진료에서 처방 보조 도구로 활용될 수 있는지를 기준으로 아래 3개 항목에 대해 1~5점으로 평가해 주시면 됩니다.</strong></p>
-      <p class="!text-rose-600 font-medium border-l-4 border-rose-400 bg-rose-50 px-3 py-2 rounded-r"><strong>※ Model A와 Model B는 각 EMR 케이스마다 무작위로 배정됩니다. A·B의 순서·라벨에 영향받지 마시고 각 답변을 독립적으로 평가해 주십시오.</strong></p>
-
-      <p>점수는 각 항목별로 다음 기준에 따라 부여해 주십시오.</p>
+      <h4>점수 부여 기준 (1~5점)</h4>
       <ul>
         <li><strong>5점</strong>: 전문의가 외래에서 거의 그대로 참고할 수 있을 정도로 적절함</li>
         <li><strong>4점</strong>: 전반적으로 적절하나, 일부 경미한 보완이나 확인이 필요함</li>
@@ -141,76 +57,54 @@
         <li><strong>2점</strong>: 중요한 오류나 누락이 있어 처방 보조 도구로 활용하기 어려움</li>
         <li><strong>1점</strong>: 중대한 임상적/제도적 문제가 있어 실제 처방 보조에 부적절함</li>
       </ul>
-      <p>각 항목에서 감점이 필요한 경우, 이후의 세부 오류 태깅 문항에서 해당 사유를 표시해 주십시오.</p>
+
+      <div class="p-3 rounded-lg bg-amber-50 border border-amber-200 not-prose">
+        <p class="text-sm font-semibold text-amber-900 mb-1">⚠️ 현재 처방(Answer Prescription) 표시 안내</p>
+        <ul class="text-sm text-amber-900 list-disc pl-5 space-y-0.5">
+          <li><b>현재 처방(실제 정답)은 기본적으로 숨김 처리</b>되어 있으며, EMR 하단에서 클릭하면 펼쳐 볼 수 있습니다.</li>
+          <li>정답을 먼저 보면 모델 답변을 정답 기준으로만 판단하게 되는 <b>앵커링(anchoring) 편향</b>이 생겨 평가가 왜곡될 수 있습니다.</li>
+          <li>따라서 EMR과 이전 처방을 근거로 먼저 평가한 뒤, <b>판단이 어려운 경우에만</b> 현재 처방을 참고해 주세요.</li>
+        </ul>
+      </div>
 
       <h4>1-1. 임상적 안전성 및 타당성</h4>
       <p>환자의 현재 상태, 검사 수치, 동반질환, 기존 치료력을 고려했을 때 처방 제안이 의학적으로 타당하고 안전한가?</p>
-      <p>평가 시 다음을 함께 고려해 주십시오.</p>
       <ul>
         <li>최신 당뇨병 진료지침 및 일반적인 임상 의사결정 흐름에 부합하는가?</li>
         <li>신기능, 간기능, 저혈당 위험, 고령/취약성, 심혈관질환, CKD, HF 등 환자별 위험요인을 적절히 반영했는가?</li>
-        <li>금기 또는 주의가 필요한 약제를 피하고, 필요한 경우 용량 조절이나 감량을 제시했는가?</li>
-        <li>혈당 조절 상태에 비해 불필요한 약제 추가, 과도한 증량, 부적절한 인슐린 강화 등 과잉 치료를 하지 않았는가?</li>
-        <li>반대로 필요한 치료 강화, 감량, 약제 변경을 놓치지 않았는가?</li>
+        <li>금기/주의 약제를 피하고, 필요한 경우 용량 조절이나 감량을 제시했는가?</li>
+        <li>혈당 조절 상태 대비 불필요한 약제 추가, 과도한 증량, 부적절한 인슐린 강화 등 과잉 치료를 하지 않았는가?</li>
+        <li>반대로 필요한 치료 강화/감량/약제 변경을 놓치지 않았는가?</li>
       </ul>
 
       <h4>1-2. 보험·제도 부합성 및 실제 처방 가능성</h4>
       <p>국내 보험 급여 기준과 실제 외래 처방 관행을 고려했을 때, 제안된 처방이 현실적으로 처방 가능한가?</p>
-      <p>평가 시 다음을 함께 고려해 주십시오.</p>
       <ul>
-        <li>국내 건강보험 급여 기준 및 심사 기준에 부합하는 처방인가?</li>
-        <li>HbA1c 기준, 선행 약제 사용 여부, 병용 제한, eGFR 기준, 필요 서류 또는 진단 코드 등 급여 판단에 필요한 요소를 적절히 고려했는가?</li>
-        <li>급여 가능성이 불확실한 경우 이를 명확히 표시했는가?</li>
-        <li>기존 외래 처방과 비교했을 때, 임상적 근거 없이 기존 약제를 과도하게 중단·교체하지 않았는가?</li>
-        <li>급여 약제, 비급여 가능 약제, 기타 보조 약제를 적절히 구분했는가?</li>
+        <li>국내 건강보험 급여 기준 및 심사 기준에 부합하는가?</li>
+        <li>HbA1c, 선행 약제 사용 여부, 병용 제한, eGFR 기준 등 급여 판단 요소를 고려했는가?</li>
+        <li>급여 가능성이 불확실한 경우 명확히 표시했는가?</li>
+        <li>임상적 근거 없이 기존 약제를 과도하게 중단·교체하지 않았는가?</li>
+        <li>급여/비급여/보조 약제를 적절히 구분했는가?</li>
       </ul>
 
       <h4>1-3. 외래 활용성 및 가독성</h4>
       <p>바쁜 외래 환경에서 의사가 빠르게 읽고 처방 의사결정에 활용하기 쉬운가?</p>
-      <p>평가 시 다음을 함께 고려해 주십시오.</p>
       <ul>
-        <li>유지, 중단, 변경, 신규 처방이 명확히 구분되어 있는가?</li>
-        <li>약제명, 용량, 빈도, 증량 또는 감량 계획이 충분히 구체적인가?</li>
+        <li>유지/중단/변경/신규 처방이 명확히 구분되어 있는가?</li>
+        <li>약제명, 용량, 빈도, 증량/감량 계획이 충분히 구체적인가?</li>
         <li>처방 근거가 환자 정보와 연결되어 간결하게 설명되어 있는가?</li>
-        <li>(만약, 다음 내용이 답변에 존재한다면) 추적 관찰 계획, 다음 내원 시점, 필요한 검사 항목이 환자 위험도에 맞게 제시되어 있는가?</li>
-        <li>불확실한 부분이나 추가 확인이 필요한 정보를 명확히 표시했는가?</li>
+        <li>추적 관찰 계획·다음 내원 시점·필요한 검사 항목이 환자 위험도에 맞게 제시되어 있는가?</li>
+        <li>불확실한 부분/추가 확인이 필요한 정보를 명확히 표시했는가?</li>
       </ul>
-
-      <hr/>
-
-      <h4>2. 감점 사유 및 주요 문제 유형</h4>
-      <p>앞선 포괄 평가에서 각 모델 답변에 감점을 주셨다면, 감점의 원인이 된 문제 유형을 아래에서 선택해 주십시오. 중복 선택 가능하며, 해당 사항이 없으면 비워두셔도 됩니다.</p>
-      <ul>
-        <li>절대 금기 약물 포함 (임상 안전 위반)</li>
-        <li>환자의 특정 기저질환(예: 신기능 저하 eGFR) 누락/미반영</li>
-        <li>불필요한 과잉 처방 (Over-expansion)</li>
-        <li>명백한 국내 보험 규정 위반 (삭감 대상)</li>
-        <li>의학적 사실 왜곡 (Hallucination)</li>
-        <li>기존 처방 체계 보존 실패 / 불필요한 처방 변경</li>
-      </ul>
-
-      <h4>3. 최종 활용 선호도</h4>
-      <p>앞선 평가 항목을 종합하여, 두 모델 답변 중 실제 외래에서 처방 보조 도구로 더 참고하고 싶은 답변을 선택해 주십시오. 임상적 안전성, 보험·제도 부합성, 실제 외래에서의 활용 가능성을 함께 고려해 판단해 주십시오.</p>
-      <ul>
-        <li>A 답변을 더 참고하고 싶음</li>
-        <li>B 답변을 더 참고하고 싶음</li>
-        <li>두 답변 간 처방 보조 관점에서 유의미한 차이 없음</li>
-        <li>두 답변 모두 실제 처방 보조 도구로 사용하기 어려움</li>
-      </ul>
-      </div><!-- /#gl-pane-eval -->
-      </div><!-- /scrollable inner -->
     </div>
   </section>
 
-  </div><!-- /#topbar -->
-
-  <!-- Main Layout — independent scroll container below the fixed topbar -->
-  <main id="main-scroll" class="flex-1 overflow-y-auto">
-    <div class="max-w-7xl mx-auto px-6 py-6 grid grid-cols-12 gap-6">
+  <!-- Main Layout -->
+  <main class="max-w-[100rem] mx-auto px-6 py-6 grid grid-cols-12 gap-6">
 
     <!-- Sidebar Case List -->
-    <aside class="col-span-12 md:col-span-3">
-      <div class="bg-white border border-slate-200 rounded-xl p-4 sticky top-4">
+    <aside class="col-span-12 md:col-span-2">
+      <div class="bg-white border border-slate-200 rounded-xl p-4 sticky top-32">
         <h2 class="text-sm font-semibold text-slate-700 mb-3 flex items-center justify-between">
           <span>📂 Cases</span>
           <span id="case-count" class="text-xs text-slate-400 font-normal">0</span>
@@ -218,44 +112,24 @@
         <ul id="case-list" class="space-y-1.5 max-h-[60vh] overflow-y-auto pr-1"></ul>
 
         <div class="mt-4 pt-3 border-t border-slate-100">
-          <button id="btn-load-file" class="w-full text-xs px-3 py-1.5 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50">📁 JSON 파일 불러오기</button>
-          <input id="file-input" type="file" accept="application/json" class="hidden" />
+          <button id="btn-load-file" class="w-full text-xs px-3 py-1.5 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50">📁 JSONL 파일 불러오기</button>
+          <input id="file-input" type="file" accept=".json,.jsonl,application/json,application/jsonl" class="hidden" />
+          <p class="text-[10px] text-slate-400 mt-2 leading-snug">환자 EMR 데이터는 브라우저 안에서만 처리되며 외부로 전송·업로드되지 않습니다.</p>
         </div>
       </div>
     </aside>
 
     <!-- Main Panel -->
-    <section class="col-span-12 md:col-span-9 space-y-6">
+    <section class="col-span-12 md:col-span-10 space-y-6">
 
-      <!-- Vignette -->
-      <article id="vignette-card" class="bg-white border border-slate-200 rounded-xl p-5">
+      <!-- EMR -->
+      <article id="emr-card" class="bg-white border border-slate-200 rounded-xl p-5">
         <!-- rendered by JS -->
+        <p class="text-sm text-slate-400">데이터를 불러오는 중…</p>
       </article>
 
-      <!-- Randomization notice -->
-      <div class="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 flex items-start gap-2">
-        <span class="shrink-0">🎲</span>
-        <span><strong>Model A와 Model B는 각 EMR 케이스마다 무작위로 배정됩니다.</strong> A·B의 순서나 라벨에 영향받지 마시고, 각 답변을 독립적으로 평가해 주십시오.</span>
-      </div>
-
-      <!-- Side-by-side Comparison -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <article class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          <header class="px-4 py-2.5 bg-gradient-to-r from-sky-50 to-white border-b border-slate-100 flex items-center gap-2">
-            <span class="w-7 h-7 rounded-md bg-sky-500 text-white flex items-center justify-center text-xs font-bold">A</span>
-            <h3 class="text-sm font-semibold text-slate-700">Model A 처방 제안</h3>
-          </header>
-          <div id="model-a" class="p-4 prose prose-sm max-w-none"></div>
-        </article>
-
-        <article class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          <header class="px-4 py-2.5 bg-gradient-to-r from-violet-50 to-white border-b border-slate-100 flex items-center gap-2">
-            <span class="w-7 h-7 rounded-md bg-violet-500 text-white flex items-center justify-center text-xs font-bold">B</span>
-            <h3 class="text-sm font-semibold text-slate-700">Model B 처방 제안</h3>
-          </header>
-          <div id="model-b" class="p-4 prose prose-sm max-w-none"></div>
-        </article>
-      </div>
+      <!-- 3-Model Comparison (rendered by JS) -->
+      <div id="comparison" class="space-y-3"></div>
 
       <!-- Evaluation Form -->
       <article class="bg-white border border-slate-200 rounded-xl p-6">
@@ -263,27 +137,19 @@
         <p class="text-xs text-slate-500 mb-5">입력은 자동 저장되며, <b>완료 처리</b> 버튼을 눌러야 해당 케이스가 ✅ 완료로 표시됩니다.</p>
 
         <!-- 1. Comprehensive -->
+        <h3 class="text-sm font-semibold text-slate-700 mb-3">1. 포괄 평가 (Comprehensive Evaluation)</h3>
         <section id="form-comprehensive" class="space-y-5"></section>
 
         <!-- 2. Deductions -->
         <section class="mt-8">
           <h3 class="text-sm font-semibold text-slate-700 mb-2">2. 감점 사유 및 주요 문제 유형 <span class="text-xs text-slate-400 font-normal">(중복 선택 가능)</span></h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p class="text-xs font-medium text-sky-700 mb-2">Model A</p>
-              <div id="deductions-A" class="space-y-1.5"></div>
-            </div>
-            <div>
-              <p class="text-xs font-medium text-violet-700 mb-2">Model B</p>
-              <div id="deductions-B" class="space-y-1.5"></div>
-            </div>
-          </div>
+          <div id="deductions-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
         </section>
 
         <!-- 3. Preference -->
         <section class="mt-8">
           <h3 class="text-sm font-semibold text-slate-700 mb-2">3. 최종 활용 선호도</h3>
-          <p class="text-xs text-slate-500 mb-3">두 답변 중 실제 외래에서 처방 보조 도구로 더 참고하고 싶은 답변을 선택해 주십시오.</p>
+          <p class="text-xs text-slate-500 mb-3">세 답변 중 실제 외래에서 처방 보조 도구로 가장 참고하고 싶은 답변을 선택해 주십시오.</p>
           <div id="preference-group" class="space-y-1.5"></div>
         </section>
 
@@ -297,7 +163,6 @@
       </article>
 
     </section>
-    </div>
   </main>
 
   <!-- Toast -->
@@ -318,8 +183,12 @@
           <input id="ev-name" type="text" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="예: 김민수" />
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">소속 <span class="text-rose-500">*</span></label>
-          <input id="ev-affiliation" type="text" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="예: ㅇㅇ병원 내분비내과" />
+          <label class="block text-xs font-medium text-slate-600 mb-1">이메일 <span class="text-rose-500">*</span></label>
+          <input id="ev-email" type="email" required class="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="예: dr.kim@hospital.kr" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 mb-1">소속 <span class="text-slate-400">(선택)</span></label>
+          <input id="ev-affiliation" type="text" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="예: ㅇㅇ병원 내분비내과" />
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">직책/연차 <span class="text-slate-400">(선택)</span></label>

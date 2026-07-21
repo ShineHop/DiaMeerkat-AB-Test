@@ -1,0 +1,7 @@
+# Do NOT commit patient EMR data — GitHub Pages serves the repo publicly.
+*.jsonl
+sample_data.json
+
+# Local results / exports
+abc_test_*.jsonl
+ab_test_*.jsonl

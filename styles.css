@@ -96,14 +96,81 @@ code, pre, .mono {
 .prose hr { border-color: #e2e8f0; margin: 1em 0; }
 .prose blockquote { border-left: 3px solid #e2e8f0; padding-left: 0.8em; color: #475569; }
 
-.vignette-row {
-  display: grid;
-  grid-template-columns: 130px 1fr;
-  gap: 4px 16px;
-  font-size: 13px;
+/* Markdown tables (prescription_recommendation cells are GFM tables) */
+.md-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin: 0.4em 0;
 }
-.vignette-row dt { color: #64748b; }
-.vignette-row dd { color: #0f172a; font-weight: 500; }
+.md-body th, .md-body td {
+  border: 1px solid #e2e8f0;
+  padding: 4px 6px;
+  text-align: left;
+  vertical-align: top;
+}
+.md-body th { background: #f8fafc; font-weight: 600; color: #334155; }
+.md-body { overflow-x: auto; }
+
+/* EMR outpatient note — preserve whitespace / line breaks */
+.emr-note {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #1e293b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  max-height: 340px;
+  overflow-y: auto;
+  margin: 0;
+}
+
+/* 3-model aligned comparison */
+.cmp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 900px) {
+  .cmp-grid { grid-template-columns: 1fr; }
+}
+.cmp-header { position: sticky; top: 7.5rem; z-index: 10; }
+.cmp-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+.cmp-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 6px;
+  padding-top: 4px;
+  border-top: 1px dashed #e2e8f0;
+}
+.cmp-section:first-child .cmp-title { border-top: none; }
+.cmp-cell {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  min-height: 44px;
+}
+.cmp-raw {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fafafa;
+}
+.cmp-raw .md-body { max-height: 420px; overflow-y: auto; }
 
 .toast-show {
   display: block !important;
