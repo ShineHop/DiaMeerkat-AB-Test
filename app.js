@@ -223,6 +223,21 @@
     });
   };
 
+  // Guidelines tabs: 🛠 시스템 사용법 / 📋 평가 가이드라인
+  const setGuidelinesTab = (tab) => {
+    const panes = { system: $('#gl-pane-system'), eval: $('#gl-pane-eval') };
+    const tabs = { system: $('#tab-system'), eval: $('#tab-eval') };
+    Object.entries(panes).forEach(([k, el]) => el && el.classList.toggle('hidden', k !== tab));
+    Object.entries(tabs).forEach(([k, el]) => {
+      if (!el) return;
+      const active = k === tab;
+      el.classList.toggle('bg-amber-100', active);
+      el.classList.toggle('text-amber-900', active);
+      el.classList.toggle('text-slate-600', !active);
+      el.classList.toggle('hover:bg-amber-50', !active);
+    });
+  };
+
   // Sticky top bar so key patient info stays visible while scrolling long answers.
   const renderCaseSummary = (c) => {
     const el = $('#case-summary');
@@ -722,6 +737,9 @@
     if (cases.length) selectCase(cases[0].id);
 
     $('#btn-guidelines').addEventListener('click', () => $('#guidelines-panel').classList.toggle('hidden'));
+    $('#btn-guidelines-close').addEventListener('click', () => $('#guidelines-panel').classList.add('hidden'));
+    document.querySelectorAll('.gl-tab').forEach(t => t.addEventListener('click', () => setGuidelinesTab(t.dataset.tab)));
+    setGuidelinesTab('system');
     $('#btn-export').addEventListener('click', exportJSONL);
     $('#btn-reset').addEventListener('click', resetAll);
     $('#btn-complete').addEventListener('click', () => completeCurrent(false));

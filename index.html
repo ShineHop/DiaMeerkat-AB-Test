@@ -54,65 +54,154 @@
   </header>
 
   <!-- Guidelines Drawer -->
-  <section id="guidelines-panel" class="hidden bg-white border-b border-slate-200">
-    <div class="max-w-[100rem] mx-auto px-6 py-5 prose prose-sm max-w-none">
-      <h3 class="!mt-0">📋 평가 가이드라인</h3>
+  <section id="guidelines-panel" class="hidden bg-amber-50/40 border-b border-amber-200">
+    <div class="max-w-[100rem] mx-auto px-6 py-2 flex items-center justify-between gap-3 flex-wrap">
+      <div class="inline-flex rounded-md border border-amber-300 bg-white overflow-hidden text-[12px] font-medium shadow-sm">
+        <button id="tab-system" data-tab="system" class="gl-tab px-3 py-1 text-amber-900 bg-amber-100 border-r border-amber-200">🛠 시스템 사용법</button>
+        <button id="tab-eval" data-tab="eval" class="gl-tab px-3 py-1 text-slate-600 hover:bg-amber-50">📋 평가 가이드라인</button>
+      </div>
+      <button id="btn-guidelines-close" class="text-[11px] text-slate-500 hover:text-slate-800">접기 ✕</button>
+    </div>
+    <div class="max-w-[100rem] mx-auto px-6 pb-3">
+      <div class="max-h-[60vh] overflow-y-auto pr-3 prose prose-sm max-w-none bg-white border border-amber-200 rounded-lg p-4 shadow-inner">
 
-      <div class="p-3 rounded-lg bg-sky-50 border border-sky-200 not-prose">
-        <p class="text-sm font-semibold text-sky-900 mb-1">ℹ️ 시작 전 안내</p>
-        <ul class="text-sm text-sky-900 list-disc pl-5 space-y-0.5">
-          <li><b>예상 소요 시간</b>: 케이스당 약 3~5분입니다. 중간에 종료해도 입력 내용은 자동 저장되며, 다음 접속 시 이어서 진행할 수 있습니다.</li>
-          <li><b>권장 사용 환경</b>: PC + 최신 Chrome/Edge, 화면 폭 1280px 이상을 권장합니다. (3열 비교가 넓게 표시됩니다.)</li>
-          <li><b>개인정보·보안</b>: 데이터는 브라우저 안에서만 처리되며 서버로 전송·업로드되지 않습니다. 평가 결과와 평가자 정보는 브라우저(localStorage)에만 저장되고, 내보내기(Export) 파일에만 포함됩니다.</li>
-          <li><b>오류 발생 시</b>: 화면이 비정상이면 새로고침하세요(입력은 보존됩니다). 데이터가 안 보이면 사이드바의 <b>📁 JSONL 파일 불러오기</b>로 다시 로드하세요. 반복되는 문제는 사이드바의 <b>🛠 도구 개선 피드백</b>에 남겨 주세요.</li>
+      <!-- TAB 1: 시스템 사용법 -->
+      <div id="gl-pane-system" class="gl-pane">
+        <h3 class="!mt-0">🛠 시스템 사용법</h3>
+
+        <p class="!text-emerald-700 font-medium border-l-4 border-emerald-400 bg-emerald-50 px-3 py-2 rounded-r">
+          본 시스템은 세 모델(A·B·C)이 생성한 처방안을 블라인드로 비교 평가하기 위한 도구입니다. 아래 순서대로 진행해 주십시오.
+        </p>
+
+        <div class="p-3 rounded-lg bg-sky-50 border border-sky-200 not-prose my-3">
+          <p class="text-sm font-semibold text-sky-900 mb-1">ℹ️ 시작 전 안내</p>
+          <ul class="text-sm text-sky-900 list-disc pl-5 space-y-0.5">
+            <li><b>예상 소요 시간</b>: 케이스당 약 3~5분입니다. 중간에 종료해도 입력 내용은 자동 저장되며, 다음 접속 시 이어서 진행할 수 있습니다.</li>
+            <li><b>권장 사용 환경</b>: PC + 최신 Chrome/Edge, 화면 폭 1280px 이상을 권장합니다. (3열 비교가 넓게 표시됩니다.)</li>
+            <li><b>개인정보·보안</b>: 데이터는 브라우저 안에서만 처리되며 서버로 전송·업로드되지 않습니다. 평가 결과와 평가자 정보는 브라우저(localStorage)에만 저장되고, 내보내기(Export) 파일에만 포함됩니다.</li>
+            <li><b>오류 발생 시</b>: 화면이 비정상이면 새로고침하세요(입력은 보존됩니다). 데이터가 안 보이면 사이드바의 <b>📁 JSONL 파일 불러오기</b>로 다시 로드하세요.</li>
+          </ul>
+        </div>
+
+        <h4>① 평가자 정보 입력</h4>
+        <ul>
+          <li>최초 접속 시 <strong>이름</strong>과 <strong>이메일</strong>을 입력합니다 (소속·직책/연차는 선택).</li>
+          <li>입력 정보는 결과 파일에 자동으로 포함되며, <strong>본인 브라우저에만 저장</strong>됩니다.</li>
+          <li>상단 우측의 <code>👤 이름</code> 칩을 클릭하면 언제든지 수정할 수 있습니다.</li>
+        </ul>
+
+        <h4>② 데이터 불러오기</h4>
+        <ul>
+          <li>좌측 사이드바의 <strong>📁 JSONL 파일 불러오기</strong>로 배포받은 <code>abc_test_emr_*.jsonl</code> 파일을 선택합니다.</li>
+          <li>환자 EMR 데이터는 <strong>브라우저 안에서만 처리</strong>되며 어디에도 업로드되지 않습니다.</li>
+        </ul>
+
+        <h4>③ EMR 케이스 선택</h4>
+        <ul>
+          <li>좌측 <strong>📂 Cases</strong> 목록에서 평가할 케이스를 클릭합니다.</li>
+          <li>각 케이스 좌측 점은 상태를 표시합니다 — <strong>회색</strong>: 미완료 / <strong>초록</strong>: 완료 표시됨.</li>
+          <li>상단 진행률 바와 <strong>고정 요약 바</strong>(Case ID·HbA1c·eGFR·BMI 등)로 현재 케이스와 진행 상황을 확인할 수 있습니다.</li>
+        </ul>
+
+        <h4>④ 세 모델 답변 비교</h4>
+        <ul>
+          <li>먼저 <strong>EMR(외래 경과 기록)</strong> 과 <strong>이전 처방</strong>을 확인합니다.</li>
+          <li><strong>A·B·C</strong> 세 모델의 답변을 공통 항목(환자 상태 분석, 처방 추천, 모니터링 등)별로 같은 행에 나란히 비교합니다.</li>
+          <li>각 모델의 <strong>원본 답변(raw)</strong> 은 필요 시 펼쳐 볼 수 있습니다.</li>
+          <li class="!text-rose-600"><strong>※ A·B·C는 각 케이스마다 무작위로 배정됩니다. 라벨에 영향받지 말고 각 답변을 독립적으로 평가하십시오.</strong></li>
+          <li><strong>현재 처방(정답)</strong> 은 앵커링 편향 방지를 위해 기본 숨김이며, EMR 하단에서 판단이 어려울 때만 펼쳐 참고하세요.</li>
+        </ul>
+
+        <h4>⑤ 평가 항목 작성</h4>
+        <ul>
+          <li><strong>1. 포괄 평가</strong>: 3개 도메인(임상적 안전성 / 보험·제도 / 외래 활용성)을 A·B·C 각각 <strong>1~5점 버튼</strong>으로 채점합니다. <strong>기본값이 없으므로(미평가)</strong> 모든 항목을 직접 선택해야 합니다.</li>
+          <li><strong>2. 감점 사유</strong>: 문제 유형을 그룹별로 다중 선택하고, 목록에 없으면 <strong>기타(직접 입력)</strong> 란에 기재합니다 (해당 없으면 비워두어도 됨).</li>
+          <li><strong>3. 최종 활용 선호도</strong>: 가장 참고하고 싶은 답변을 단일 선택하고, 필요 시 <strong>선호 강도·선호 이유</strong>를 함께 남깁니다.</li>
+        </ul>
+
+        <h4>⑥ 완료 처리 및 다음 케이스</h4>
+        <ul>
+          <li>입력 즉시 <strong>자동 저장</strong>되며, 케이스를 옮겨도 내용은 유지됩니다.</li>
+          <li>평가를 마쳤다면 하단의 <strong>✅ 완료 표시</strong> 또는 <strong>완료 표시 후 다음 케이스 ➡️</strong> 버튼을 누릅니다.</li>
+          <li><strong>필수 항목(9개 점수 + 최종 선호도)</strong> 이 모두 입력되어야 완료 처리됩니다. 누락 시 안내됩니다.</li>
+        </ul>
+
+        <h4>⑦ 결과 파일 회신</h4>
+        <ul>
+          <li>모든 케이스를 완료한 뒤, 상단 우측의 <strong>📦 Export JSONL</strong> 버튼을 클릭합니다.</li>
+          <li><code>abc_test_<em>이름_날짜</em>.jsonl</code> 파일이 다운로드됩니다.</li>
+          <li>다운로드된 파일을 <strong>이메일로 회신</strong>해 주십시오. (회신 주소: sihyeon-park@korea.ac.kr)</li>
+        </ul>
+
+        <h4>⚠ 주의 사항</h4>
+        <ul>
+          <li><strong>🗑 초기화</strong> 버튼은 현재 브라우저에 저장된 <strong>모든 평가 내용을 지웁니다</strong>. 신중히 사용해 주십시오.</li>
+          <li>평가 내용은 본인 브라우저에만 저장됩니다. 다른 기기/브라우저에서는 별도로 진행됩니다.</li>
+          <li>브라우저 데이터를 삭제하면 평가 내용도 함께 사라질 수 있으니, 중간중간 <strong>Export JSONL</strong>로 백업을 권장합니다.</li>
+          <li>도구에 대한 개선 의견은 사이드바 <strong>🛠 도구 개선 피드백</strong>에 남겨 주세요 (결과 파일에 함께 저장됩니다).</li>
         </ul>
       </div>
 
-      <h4>점수 부여 기준 (1~5점)</h4>
-      <ul>
-        <li><strong>5점</strong>: 외래에서 거의 그대로 참고 가능한 수준</li>
-        <li><strong>4점</strong>: 전반적으로 적절하나 일부 보완 필요</li>
-        <li><strong>3점</strong>: 참고는 가능하지만 상당한 수정·검토 필요</li>
-        <li><strong>2점</strong>: 주요 문제가 있어 제한적으로만 참고 가능</li>
-        <li><strong>1점</strong>: 중대한 문제가 있어 사용 부적절</li>
-      </ul>
-      <p class="text-slate-500"><b>※ 각 항목은 독립적으로 평가해 주십시오.</b> 예를 들어 의학적으로는 타당한 처방이라도 국내 급여 기준상 실제 처방이 어렵다면, 임상 안전성 항목에서는 높게 평가할 수 있으나 보험·제도 항목에서는 감점할 수 있습니다. <b>점수 기본값은 없으며(미평가), 세 모델의 모든 항목 점수와 최종 선호도를 입력해야 완료 처리됩니다.</b></p>
+      <!-- TAB 2: 평가 가이드라인 -->
+      <div id="gl-pane-eval" class="gl-pane hidden">
+        <h3 class="!mt-0">📋 평가 가이드라인</h3>
 
-      <div class="p-3 rounded-lg bg-amber-50 border border-amber-200 not-prose">
-        <p class="text-sm font-semibold text-amber-900 mb-1">⚠️ 현재 처방(Answer Prescription) 표시 안내</p>
-        <ul class="text-sm text-amber-900 list-disc pl-5 space-y-0.5">
-          <li><b>현재 처방(실제 정답)은 기본적으로 숨김 처리</b>되어 있으며, EMR 하단에서 클릭하면 펼쳐 볼 수 있습니다.</li>
-          <li>정답을 먼저 보면 모델 답변을 정답 기준으로만 판단하게 되는 <b>앵커링(anchoring) 편향</b>이 생겨 평가가 왜곡될 수 있습니다.</li>
-          <li>따라서 EMR과 이전 처방을 근거로 먼저 평가한 뒤, <b>판단이 어려운 경우에만</b> 현재 처방을 참고해 주세요.</li>
+        <h4>점수 부여 기준 (1~5점)</h4>
+        <ul>
+          <li><strong>5점</strong>: 외래에서 거의 그대로 참고 가능한 수준</li>
+          <li><strong>4점</strong>: 전반적으로 적절하나 일부 보완 필요</li>
+          <li><strong>3점</strong>: 참고는 가능하지만 상당한 수정·검토 필요</li>
+          <li><strong>2점</strong>: 주요 문제가 있어 제한적으로만 참고 가능</li>
+          <li><strong>1점</strong>: 중대한 문제가 있어 사용 부적절</li>
         </ul>
+        <p class="!text-rose-600 font-medium border-l-4 border-rose-400 bg-rose-50 px-3 py-2 rounded-r"><strong>※ 각 항목은 독립적으로 평가해 주십시오.</strong> 예를 들어 의학적으로는 타당한 처방이라도 국내 급여 기준상 실제 처방이 어렵다면, 임상 안전성 항목에서는 높게 평가하되 보험·제도 항목에서는 감점할 수 있습니다. 또한 <strong>A·B·C는 케이스마다 무작위 배정되므로 라벨에 영향받지 말고 독립적으로 평가</strong>하고, <strong>점수 기본값은 없으므로(미평가) 세 모델의 모든 항목 점수와 최종 선호도를 입력해야 완료 처리됩니다.</strong></p>
+
+        <div class="p-3 rounded-lg bg-amber-50 border border-amber-200 not-prose">
+          <p class="text-sm font-semibold text-amber-900 mb-1">⚠️ 현재 처방(Answer Prescription) 표시 안내</p>
+          <ul class="text-sm text-amber-900 list-disc pl-5 space-y-0.5">
+            <li><b>현재 처방(실제 정답)은 기본적으로 숨김 처리</b>되어 있으며, EMR 하단에서 클릭하면 펼쳐 볼 수 있습니다.</li>
+            <li>정답을 먼저 보면 모델 답변을 정답 기준으로만 판단하게 되는 <b>앵커링(anchoring) 편향</b>이 생겨 평가가 왜곡될 수 있습니다.</li>
+            <li>따라서 EMR과 이전 처방을 근거로 먼저 평가한 뒤, <b>판단이 어려운 경우에만</b> 현재 처방을 참고해 주세요.</li>
+          </ul>
+        </div>
+
+        <h4>1-1. 임상적 안전성 및 타당성</h4>
+        <p>환자 상태·검사 수치·동반질환·기존 치료력을 고려할 때 처방이 의학적으로 타당하고 안전한가?</p>
+        <ul>
+          <li>최신 당뇨병 진료지침 및 일반적인 임상 의사결정 흐름에 부합하는가?</li>
+          <li><b>신기능(eGFR)</b>을 고려해 금기·주의·용량 조절의 필요성을 판단했는가? (간기능, 저혈당 위험, 고령/취약성, CKD·HF·ASCVD 등 위험요인 포함)</li>
+          <li>혈당 조절 상태 대비 불필요한 약제 추가, 과도한 증량, 부적절한 인슐린 강화 등 과잉 치료를 하지 않았는가?</li>
+          <li><b>기존 처방을 불필요하게 변경하지 않되, 필요한 치료 강화·감량·중단·변경을 적절히 제안했는가?</b></li>
+        </ul>
+
+        <h4>1-2. 보험·제도 부합성 및 실제 처방 가능성</h4>
+        <p>임상적 타당성과 별개로, 국내 급여·심사 기준과 실제 처방 가능성 관점에서 판단합니다.</p>
+        <ul>
+          <li>국내 건강보험 급여 기준, 병용 제한, 심사 기준에 부합하는 처방인가?</li>
+          <li>HbA1c, 선행 약제, 병용 약제, <b>eGFR에 따른 급여·심사 기준</b>, 진단명, 필요 서류 등 급여 판단 요소를 고려했는가?</li>
+          <li>급여 가능성, 삭감 가능성, 필요 서류 또는 진단 코드가 불확실한 경우 이를 명확히 표시했는가?</li>
+        </ul>
+
+        <h4>1-3. 외래 활용성 및 가독성</h4>
+        <p>바쁜 외래 환경에서 의사가 빠르게 읽고 처방 의사결정에 활용하기 쉬운가?</p>
+        <ul>
+          <li>유지/중단/변경/신규 처방이 명확히 구분되어 있는가?</li>
+          <li>약제명, 용량, 빈도, 증량/감량 계획이 충분히 구체적인가?</li>
+          <li><b>처방 변경 또는 위험 약제 사용 시 필요한 추적 관찰 계획, 검사 항목 및 모니터링 계획이 제시되어 있는가?</b></li>
+          <li>환자 정보 부족, 추가 문진·검사·확인이 필요한 부분 등 불확실성을 명확히 표시했는가?</li>
+          <li>답변이 지나치게 장황하지 않고 핵심 처방안을 빠르게 파악할 수 있는가?</li>
+        </ul>
+
+        <hr/>
+
+        <h4>2. 감점 사유 및 주요 문제 유형</h4>
+        <p>포괄 평가에서 감점한 경우, 원인이 된 문제 유형을 그룹(임상 안전성 / 보험·제도 / 외래 활용성 / 기타)에서 다중 선택하고, 목록에 없으면 <strong>기타(직접 입력)</strong> 란에 기재해 주십시오. 해당 없으면 비워두셔도 됩니다.</p>
+
+        <h4>3. 최종 활용 선호도</h4>
+        <p>앞선 평가를 종합하여 실제 외래에서 처방 보조 도구로 가장 참고하고 싶은 답변을 선택해 주십시오. "우열을 가리기 어려움", "상호 보완적", "모두 사용하기 어려움"은 의미가 다르므로 상황에 맞게 선택하고, 필요 시 <strong>선호 강도</strong>와 <strong>선호 이유</strong>를 남겨 주십시오.</p>
       </div>
 
-      <h4>1-1. 임상적 안전성 및 타당성</h4>
-      <p>환자 상태·검사 수치·동반질환·기존 치료력을 고려할 때 처방이 의학적으로 타당하고 안전한가?</p>
-      <ul>
-        <li>최신 당뇨병 진료지침 및 일반적인 임상 의사결정 흐름에 부합하는가?</li>
-        <li><b>신기능(eGFR)</b>을 고려해 금기·주의·용량 조절의 필요성을 판단했는가? (간기능, 저혈당 위험, 고령/취약성, CKD·HF·ASCVD 등 위험요인 포함)</li>
-        <li>혈당 조절 상태 대비 불필요한 약제 추가, 과도한 증량, 부적절한 인슐린 강화 등 과잉 치료를 하지 않았는가?</li>
-        <li><b>기존 처방을 불필요하게 변경하지 않되, 필요한 치료 강화·감량·중단·변경을 적절히 제안했는가?</b></li>
-      </ul>
-
-      <h4>1-2. 보험·제도 부합성 및 실제 처방 가능성</h4>
-      <p>임상적 타당성과 별개로, 국내 급여·심사 기준과 실제 처방 가능성 관점에서 판단합니다.</p>
-      <ul>
-        <li>국내 건강보험 급여 기준, 병용 제한, 심사 기준에 부합하는 처방인가?</li>
-        <li>HbA1c, 선행 약제, 병용 약제, <b>eGFR에 따른 급여·심사 기준</b>, 진단명, 필요 서류 등 급여 판단 요소를 고려했는가?</li>
-        <li>급여 가능성, 삭감 가능성, 필요 서류 또는 진단 코드가 불확실한 경우 이를 명확히 표시했는가?</li>
-      </ul>
-
-      <h4>1-3. 외래 활용성 및 가독성</h4>
-      <p>바쁜 외래 환경에서 의사가 빠르게 읽고 처방 의사결정에 활용하기 쉬운가?</p>
-      <ul>
-        <li>유지/중단/변경/신규 처방이 명확히 구분되어 있는가?</li>
-        <li>약제명, 용량, 빈도, 증량/감량 계획이 충분히 구체적인가?</li>
-        <li><b>처방 변경 또는 위험 약제 사용 시 필요한 추적 관찰 계획, 검사 항목 및 모니터링 계획이 제시되어 있는가?</b></li>
-        <li>환자 정보 부족, 추가 문진·검사·확인이 필요한 부분 등 불확실성을 명확히 표시했는가?</li>
-        <li>답변이 지나치게 장황하지 않고 핵심 처방안을 빠르게 파악할 수 있는가?</li>
-      </ul>
+      </div><!-- /scrollable inner -->
     </div>
   </section>
 
