@@ -184,7 +184,7 @@
     const src = s || '';
     const store = [];
     const guarded = src.replace(MATH_RE, (m) => `${store.push(m) - 1}`);
-    let html = marked.parse(guarded);
+    let html = marked.parse(guarded).replace(/<hr\b[^>]*>/gi, '');
     html = html.replace(/(\d+)/g, (_, i) => store[Number(i)]);
     return html;
   };
