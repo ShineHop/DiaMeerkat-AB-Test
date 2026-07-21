@@ -4,6 +4,7 @@
 
   const STORAGE_KEY = 'abc_test_eval_results_v1';
   const EVALUATOR_KEY = 'abc_test_evaluator_v1';
+  const TOOL_FEEDBACK_KEY = 'abc_test_tool_feedback_v1';
   // Optional local convenience only. On a public host this 404s and the app
   // falls back to the file picker, so patient EMR data is never served.
   const DATA_URL = 'abc_test_emr_0.14k.jsonl';
@@ -16,29 +17,57 @@
 
   const SCORE_DOMAINS = [
     { key: 'clinical_safety', title: '1-1. 임상적 안전성 및 타당성',
-      desc: '환자의 현재 상태, 검사 수치, 동반질환, 기존 치료력을 고려했을 때 처방 제안이 의학적으로 타당하고 안전한가?' },
+      desc: '환자 상태·검사 수치·동반질환·기존 치료력을 고려할 때 의학적으로 타당하고 안전한가? (기존 처방을 불필요하게 변경하지 않되, 필요한 강화·감량·중단·변경을 적절히 제안했는가?)' },
     { key: 'insurance_compliance', title: '1-2. 보험·제도 부합성 및 실제 처방 가능성',
-      desc: '국내 보험 급여 기준과 실제 외래 처방 관행을 고려했을 때, 제안된 처방이 현실적으로 처방 가능한가?' },
+      desc: '국내 급여 기준·병용 제한·심사 기준에 부합하며 실제로 처방 가능한가? (임상 타당성과 별개로, 급여·심사 관점에서 판단)' },
     { key: 'usability', title: '1-3. 외래 활용성 및 가독성',
-      desc: '바쁜 외래 환경에서 의사가 빠르게 읽고 처방 의사결정에 활용하기 쉬운가?' },
+      desc: '바쁜 외래에서 빠르게 읽고 처방 의사결정에 활용하기 쉬운가?' },
   ];
 
-  const DEDUCTIONS = [
-    '절대 금기 약물 포함 (임상 안전 위반)',
-    '환자의 특정 기저질환(예: 신기능 저하 eGFR) 누락/미반영',
-    '불필요한 과잉 처방 (Over-expansion)',
-    '명백한 국내 보험 규정 위반 (삭감 대상)',
-    '의학적 사실 왜곡 (Hallucination)',
-    '기존 처방 체계 보존 실패/ 불필요한 처방 변경',
+  // Score labels shown as a legend / tooltip under each domain.
+  const SCORE_LEGEND = {
+    5: '외래에서 거의 그대로 참고 가능',
+    4: '전반적으로 적절하나 일부 보완 필요',
+    3: '참고 가능하나 상당한 수정·검토 필요',
+    2: '주요 문제가 있어 제한적으로만 참고 가능',
+    1: '중대한 문제가 있어 사용 부적절',
+  };
+
+  // Grouped deduction options (feedback: ~10 유형 + 자유기재란)
+  const DEDUCTION_GROUPS = [
+    { group: '임상 안전성', items: [
+      '절대 금기 또는 중대한 주의 약제 제안',
+      '주요 위험요인(신기능·간기능·저혈당·고령·CKD·HF·ASCVD) 미반영',
+      '필요한 치료 강화·감량·중단·변경 누락, 또는 불필요한 약제 추가·과도한 증량',
+    ] },
+    { group: '보험·제도', items: [
+      '국내 급여 기준 또는 병용 제한 위반',
+      '급여 가능성이 불확실한데 이를 표시하지 않음',
+      '필요 진단명·검사 기준·선행 약제·서류 요건 미반영',
+    ] },
+    { group: '외래 활용성', items: [
+      '처방안(약제명·용량·빈도·유지/중단/변경)이 불명확',
+      '추적 관찰·검사·부작용 모니터링 계획 부족',
+      '임상 근거가 부족한 기존 약제의 중단·교체 (기존 치료 변경의 근거 부족)',
+      '답변이 장황하여 핵심 처방안 파악이 어려움',
+    ] },
+    { group: '기타', items: [
+      '의학적 사실 왜곡 또는 hallucination',
+    ] },
   ];
 
   const PREFERENCES = [
     'A 답변을 가장 참고하고 싶음',
     'B 답변을 가장 참고하고 싶음',
     'C 답변을 가장 참고하고 싶음',
-    '세 답변 간 처방 보조 관점에서 유의미한 차이 없음',
+    '세 답변 모두 우수하여 우열을 가리기 어려움',
+    '세 답변이 상호 보완적임 (조합 시 유용)',
     '세 답변 모두 실제 처방 보조 도구로 사용하기 어려움',
   ];
+  // Which preference options refer to a specific model (index maps to slot).
+  const PREF_MODEL_COUNT = 3;
+
+  const PREF_STRENGTHS = ['약함', '보통', '강함'];
 
   // Common keys shared by all 3 models, rendered aligned side-by-side.
   const ANSWER_SECTIONS = [
@@ -47,9 +76,8 @@
     { key: 'prescription_recommendation', sub: 'non_covered_or_alternative', title: '③ 처방 추천 — 비급여 / 대체 (Non-covered / Alternative)' },
     { key: 'prescription_recommendation', sub: 'other_medications', title: '④ 처방 추천 — 기타 약물 (Other Medications)' },
     { key: 'prescription_recommendation', sub: 'general', title: '⑤ 처방 추천 — 일반 (General)' },
-    { key: 'prescription_rationale', sub: null, title: '⑥ 처방 근거 (Rationale)' },
-    { key: 'monitoring_and_additional_recommendation', sub: null, title: '⑦ 모니터링 및 추가 권고 (Monitoring)' },
-    { key: 'unclassified', sub: null, title: '⑧ 미분류 (Unclassified)' },
+    { key: 'monitoring_and_additional_recommendation', sub: null, title: '⑥ 모니터링 및 추가 권고 (Monitoring)' },
+    { key: 'unclassified', sub: null, title: '⑦ 미분류 (Unclassified)' },
   ];
 
   /** @type {Array<any>} */
@@ -58,6 +86,7 @@
   /** @type {Record<string, any>} */
   let results = {};
   let evaluator = null;
+  let toolFeedback = '';
 
   // ---------------------------------------------------------------------------
   // Blind mapping — deterministic per case (stable across reruns/sessions)
@@ -109,15 +138,28 @@
 
   const defaultRecord = () => ({
     is_completed: false,
-    scores: Object.fromEntries(SLOTS.map(s => [s, Object.fromEntries(SCORE_DOMAINS.map(d => [d.key, 3]))])),
+    // null = 미평가 (feedback: no silent default; must be actively scored)
+    scores: Object.fromEntries(SLOTS.map(s => [s, Object.fromEntries(SCORE_DOMAINS.map(d => [d.key, null]))])),
     deductions: Object.fromEntries(SLOTS.map(s => [s, []])),
+    deduction_note: Object.fromEntries(SLOTS.map(s => [s, ''])),
     preference: null,
+    preference_strength: null,
+    preference_reason: '',
     saved_at: null,
   });
 
+  // Back-fill new fields onto records loaded from older localStorage snapshots.
+  const migrateRecord = (rec) => {
+    const base = defaultRecord();
+    for (const k of ['deduction_note', 'preference_strength', 'preference_reason']) {
+      if (rec[k] === undefined) rec[k] = base[k];
+    }
+    return rec;
+  };
+
   const ensureRecord = (id) => {
     if (!results[id]) results[id] = defaultRecord();
-    return results[id];
+    return migrateRecord(results[id]);
   };
 
   // ---------------------------------------------------------------------------
@@ -179,6 +221,25 @@
       li.addEventListener('click', () => selectCase(c.id));
       ul.appendChild(li);
     });
+  };
+
+  // Sticky top bar so key patient info stays visible while scrolling long answers.
+  const renderCaseSummary = (c) => {
+    const el = $('#case-summary');
+    if (!el) return;
+    const emr = c.emr || {};
+    const note = emr.outpatient_note || '';
+    const grab = (re) => { const m = note.match(re); return m ? m[1] : null; };
+    const hba1c = grab(/Hb\s*A1c[^0-9\-]*([0-9]+\.?[0-9]*)/i);
+    const egfr = grab(/eGFR[^0-9\-]*([0-9]+\.?[0-9]*)/i);
+    const bmi = grab(/BMI[^0-9.]*([0-9]+\.?[0-9]*)/i);
+    const chips = [`<span class="sum-chip sum-id">Case ${escapeHtml(c.id)}</span>`];
+    if (hba1c) chips.push(`<span class="sum-chip">HbA1c ${escapeHtml(hba1c)}%</span>`);
+    if (egfr) chips.push(`<span class="sum-chip">eGFR ${escapeHtml(egfr)}</span>`);
+    if (bmi) chips.push(`<span class="sum-chip">BMI ${escapeHtml(bmi)}</span>`);
+    chips.push(`<span class="sum-chip">이전 처방 ${(emr.previous_prescription || []).length}건</span>`);
+    if (emr.source) chips.push(`<span class="sum-chip sum-src">${escapeHtml(emr.source)}</span>`);
+    el.innerHTML = chips.join('');
   };
 
   const renderEMR = (c) => {
@@ -261,86 +322,114 @@
       </div>`;
   };
 
+  const badgeText = { A: 'text-sky-700', B: 'text-violet-700', C: 'text-amber-700' };
+  const cellBg = { A: 'bg-sky-50/40', B: 'bg-violet-50/40', C: 'bg-amber-50/40' };
+
+  // Required fields missing before a case can be marked complete.
+  const missingRequired = (rec) => {
+    const missing = [];
+    SLOTS.forEach(s => SCORE_DOMAINS.forEach(d => {
+      if (rec.scores[s][d.key] == null) missing.push(`${SLOT_LABEL[s]} · ${d.title.split('.')[0]} 점수`);
+    }));
+    if (!rec.preference) missing.push('최종 활용 선호도');
+    return missing;
+  };
+
   const renderEvaluationForm = (c) => {
     const rec = ensureRecord(c.id);
-    const badgeText = { A: 'text-sky-700', B: 'text-violet-700', C: 'text-amber-700' };
-    const cellBg = { A: 'bg-sky-50/40', B: 'bg-violet-50/40', C: 'bg-amber-50/40' };
 
-    // 1. comprehensive scores
+    // 1. comprehensive scores — 1~5 buttons, no default (미평가 = null)
+    const legendLine = [5, 4, 3, 2, 1].map(n => `${n} = ${SCORE_LEGEND[n]}`).join('  ·  ');
     const compEl = $('#form-comprehensive');
-    compEl.innerHTML = '';
+    compEl.innerHTML = `<p class="text-[11px] text-slate-400 mb-4">${escapeHtml(legendLine)}</p>`;
     SCORE_DOMAINS.forEach(d => {
       const block = document.createElement('div');
       block.innerHTML = `
         <h4 class="text-sm font-semibold text-slate-700">${escapeHtml(d.title)}</h4>
         <p class="text-xs text-slate-500 mt-0.5 mb-3">${escapeHtml(d.desc)}</p>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          ${SLOTS.map(side => `
+          ${SLOTS.map(side => {
+            const val = rec.scores[side][d.key];
+            return `
             <div class="border border-slate-200 rounded-lg p-3 ${cellBg[side]}">
               <div class="flex items-center justify-between mb-2">
                 <span class="text-xs font-semibold ${badgeText[side]}">${SLOT_LABEL[side]}</span>
-                <span class="score-pill" data-pill="${side}-${d.key}">${rec.scores[side][d.key]}</span>
+                <span class="text-[10px] ${val == null ? 'text-rose-400' : 'text-slate-400'}" data-badge="${side}-${d.key}">${val == null ? '미평가' : SCORE_LEGEND[val]}</span>
               </div>
-              <input type="range" min="1" max="5" step="1" value="${rec.scores[side][d.key]}"
-                     class="score-slider" data-side="${side}" data-domain="${d.key}" />
-              <div class="flex justify-between text-[10px] text-slate-400 mt-1 px-0.5">
-                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+              <div class="score-btns" data-side="${side}" data-domain="${d.key}">
+                ${[1, 2, 3, 4, 5].map(n => `<button type="button" class="score-btn${val === n ? ' active' : ''}" data-val="${n}">${n}</button>`).join('')}
               </div>
-            </div>
-          `).join('')}
+            </div>`;
+          }).join('')}
         </div>
       `;
       compEl.appendChild(block);
     });
 
-    // 2. deductions
+    // 2. deductions — grouped + free-text note per model
     const dedGrid = $('#deductions-grid');
     dedGrid.innerHTML = SLOTS.map(side => `
       <div>
         <p class="text-xs font-semibold ${badgeText[side]} mb-2">${SLOT_LABEL[side]}</p>
-        <div id="deductions-${side}" class="space-y-1.5"></div>
+        <div class="space-y-2">
+          ${DEDUCTION_GROUPS.map(g => `
+            <p class="ded-group">${escapeHtml(g.group)}</p>
+            ${g.items.map(opt => {
+              const checked = rec.deductions[side].includes(opt) ? 'checked' : '';
+              return `
+              <label class="flex items-start gap-2 text-sm cursor-pointer hover:bg-slate-50 rounded px-1.5 py-1">
+                <input type="checkbox" class="mt-0.5 accent-emerald-600" data-side="${side}" data-opt="${escapeHtml(opt)}" ${checked} />
+                <span class="text-slate-700">${escapeHtml(opt)}</span>
+              </label>`;
+            }).join('')}`).join('')}
+          <p class="ded-group">기타 (직접 입력)</p>
+          <textarea class="ded-note w-full text-sm px-2 py-1.5 border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                    rows="2" data-side="${side}" placeholder="위 항목에 없는 문제를 자유롭게 기재">${escapeHtml(rec.deduction_note[side] || '')}</textarea>
+        </div>
       </div>`).join('');
-    SLOTS.forEach(side => {
-      const wrap = document.querySelector(`#deductions-${side}`);
-      DEDUCTIONS.forEach(opt => {
-        const id = `ded-${side}-${slug(opt)}`;
-        const checked = rec.deductions[side].includes(opt) ? 'checked' : '';
-        wrap.insertAdjacentHTML('beforeend', `
-          <label class="flex items-start gap-2 text-sm cursor-pointer hover:bg-slate-50 rounded px-1.5 py-1">
-            <input id="${id}" type="checkbox" class="mt-0.5 accent-emerald-600" data-side="${side}" data-opt="${escapeHtml(opt)}" ${checked} />
-            <span class="text-slate-700">${escapeHtml(opt)}</span>
-          </label>`);
-      });
-    });
 
-    // 3. preference
+    // 3. preference + strength + reason
     const prefEl = $('#preference-group');
-    prefEl.innerHTML = '';
-    PREFERENCES.forEach((opt, i) => {
-      const checked = rec.preference === opt ? 'checked' : '';
-      prefEl.insertAdjacentHTML('beforeend', `
+    prefEl.innerHTML = `
+      ${PREFERENCES.map((opt, i) => `
         <label class="flex items-center gap-2 text-sm cursor-pointer hover:bg-slate-50 rounded px-1.5 py-1">
-          <input id="pref-${i}" type="radio" name="preference" class="accent-emerald-600" value="${escapeHtml(opt)}" ${checked} />
+          <input id="pref-${i}" type="radio" name="preference" class="accent-emerald-600" value="${escapeHtml(opt)}" ${rec.preference === opt ? 'checked' : ''} />
           <span class="text-slate-700">${escapeHtml(opt)}</span>
-        </label>`);
-    });
+        </label>`).join('')}
+      <div class="mt-3 flex items-center gap-3 flex-wrap">
+        <span class="text-xs font-medium text-slate-600">선호 강도 <span class="text-slate-400">(선택)</span></span>
+        ${PREF_STRENGTHS.map(s => `
+          <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+            <input type="radio" name="pref-strength" class="accent-emerald-600" value="${escapeHtml(s)}" ${rec.preference_strength === s ? 'checked' : ''} />
+            <span class="text-slate-700">${escapeHtml(s)}</span>
+          </label>`).join('')}
+      </div>
+      <div class="mt-3">
+        <p class="text-xs font-medium text-slate-600 mb-1">선호 이유 <span class="text-slate-400">(선택)</span></p>
+        <textarea id="pref-reason" rows="2" class="w-full text-sm px-2 py-1.5 border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                  placeholder="선택한 답변을 더/덜 선호하는 이유, 상호 보완 관점 등">${escapeHtml(rec.preference_reason || '')}</textarea>
+      </div>`;
 
     updateSaveStatus(c.id);
     bindFormEvents(c.id);
   };
 
   const bindFormEvents = (caseId) => {
-    document.querySelectorAll('.score-slider').forEach(el => {
-      el.addEventListener('input', () => {
-        const { side, domain } = el.dataset;
-        const val = Number(el.value);
-        ensureRecord(caseId).scores[side][domain] = val;
-        const pill = document.querySelector(`[data-pill="${side}-${domain}"]`);
-        if (pill) pill.textContent = val;
-        saveResults();
+    document.querySelectorAll('.score-btns').forEach(group => {
+      const { side, domain } = group.dataset;
+      group.querySelectorAll('.score-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = Number(btn.dataset.val);
+          ensureRecord(caseId).scores[side][domain] = val;
+          group.querySelectorAll('.score-btn').forEach(b => b.classList.toggle('active', b === btn));
+          const badge = document.querySelector(`[data-badge="${side}-${domain}"]`);
+          if (badge) { badge.textContent = SCORE_LEGEND[val]; badge.className = 'text-[10px] text-slate-400'; }
+          saveResults();
+          updateSaveStatus(caseId); // refresh 미입력 count without losing focus
+        });
       });
     });
-    document.querySelectorAll('#deductions-grid input').forEach(el => {
+    document.querySelectorAll('#deductions-grid input[type="checkbox"]').forEach(el => {
       el.addEventListener('change', () => {
         const { side, opt } = el.dataset;
         const list = ensureRecord(caseId).deductions[side];
@@ -350,21 +439,28 @@
         saveResults();
       });
     });
-    document.querySelectorAll('input[name="preference"]').forEach(el => {
-      el.addEventListener('change', () => {
-        ensureRecord(caseId).preference = el.value;
-        saveResults();
-      });
+    document.querySelectorAll('#deductions-grid .ded-note').forEach(el => {
+      el.addEventListener('input', () => { ensureRecord(caseId).deduction_note[el.dataset.side] = el.value; saveResults(); });
     });
+    document.querySelectorAll('input[name="preference"]').forEach(el => {
+      el.addEventListener('change', () => { ensureRecord(caseId).preference = el.value; saveResults(); updateSaveStatus(caseId); });
+    });
+    document.querySelectorAll('input[name="pref-strength"]').forEach(el => {
+      el.addEventListener('change', () => { ensureRecord(caseId).preference_strength = el.value; saveResults(); });
+    });
+    const reason = document.querySelector('#pref-reason');
+    if (reason) reason.addEventListener('input', () => { ensureRecord(caseId).preference_reason = reason.value; saveResults(); });
   };
 
   const updateSaveStatus = (id) => {
     const rec = ensureRecord(id);
     const el = $('#save-status');
     if (rec.is_completed) {
-      el.innerHTML = `<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> 완료 — 마지막 저장: <span class="mono">${escapeHtml(rec.saved_at || '')}</span></span>`;
+      el.innerHTML = `<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> 완료 표시됨 — 마지막 저장: <span class="mono">${escapeHtml(rec.saved_at || '')}</span></span>`;
     } else {
-      el.innerHTML = `<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-300"></span> 아직 저장되지 않음</span>`;
+      const missing = missingRequired(rec);
+      const detail = missing.length ? ` · 필수 미입력 ${missing.length}개` : ' · 필수 항목 입력 완료';
+      el.innerHTML = `<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-300"></span> 자동 저장됨 (완료 미표시)${escapeHtml(detail)}</span>`;
     }
   };
 
@@ -376,6 +472,7 @@
     const c = cases.find(x => x.id === id);
     if (!c) return;
     renderCaseList();
+    renderCaseSummary(c);
     renderEMR(c);
     renderComparison(c);
     renderEvaluationForm(c);
@@ -385,16 +482,32 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const saveCurrent = () => {
-    if (!currentId) return;
+  // Mark the current case complete (with required-field validation).
+  // Returns true on success. goNext advances to the next case afterwards.
+  const completeCurrent = (goNext) => {
+    if (!currentId) return false;
     const rec = ensureRecord(currentId);
+    const missing = missingRequired(rec);
+    if (missing.length) {
+      updateSaveStatus(currentId);
+      toast(`❌ 필수 항목 ${missing.length}개 미입력: ${missing.slice(0, 2).join(', ')}${missing.length > 2 ? ' 외' : ''}`);
+      return false;
+    }
     rec.is_completed = true;
     rec.saved_at = new Date().toISOString().slice(0, 19);
     saveResults();
     renderCaseList();
     updateProgress();
     updateSaveStatus(currentId);
-    toast(`✅ Case ${currentId} 평가가 저장되었습니다.`);
+    if (goNext) {
+      const ids = cases.map(c => c.id);
+      const nextId = ids[ids.indexOf(currentId) + 1];
+      if (nextId) { selectCase(nextId); toast(`✅ 완료 표시 후 Case ${nextId}로 이동`); return true; }
+      toast('✅ 완료 표시됨 (마지막 케이스)');
+      return true;
+    }
+    toast(`✅ Case ${currentId} 완료 표시됨`);
+    return true;
   };
 
   const exportJSONL = () => {
@@ -410,10 +523,15 @@
       const mapping = modelMapping(c.id); // slot -> real model
       const scores_by_model = {};
       const deductions_by_model = {};
-      SLOTS.forEach(s => { scores_by_model[mapping[s]] = rec.scores[s]; deductions_by_model[mapping[s]] = rec.deductions[s]; });
+      const deduction_note_by_model = {};
+      SLOTS.forEach(s => {
+        scores_by_model[mapping[s]] = rec.scores[s];
+        deductions_by_model[mapping[s]] = rec.deductions[s];
+        deduction_note_by_model[mapping[s]] = rec.deduction_note ? rec.deduction_note[s] : '';
+      });
       let preferred_model = null;
       const pIdx = PREFERENCES.indexOf(rec.preference);
-      if (pIdx >= 0 && pIdx < 3) preferred_model = mapping[SLOTS[pIdx]];
+      if (pIdx >= 0 && pIdx < PREF_MODEL_COUNT) preferred_model = mapping[SLOTS[pIdx]];
       return JSON.stringify({
         evaluator_name: evaluator.name,
         evaluator_email: evaluator.email,
@@ -421,6 +539,7 @@
         evaluator_role: evaluator.role || null,
         started_at: evaluator.started_at || null,
         exported_at,
+        tool_feedback: toolFeedback || null,
         case_id: c.id,
         patient_id: c.patient_id ?? c.id,
         source: (c.emr && c.emr.source) || null,
@@ -431,8 +550,12 @@
         scores_by_model,
         deductions_by_slot: rec.deductions,
         deductions_by_model,
+        deduction_note_by_slot: rec.deduction_note || {},
+        deduction_note_by_model,
         preference: rec.preference,
         preferred_model,
+        preference_strength: rec.preference_strength || null,
+        preference_reason: rec.preference_reason || null,
       });
     });
     const blob = new Blob([lines.join('\n')], { type: 'application/jsonl' });
@@ -511,7 +634,6 @@
   const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, ch => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[ch]));
-  const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
   let toastTimer = null;
   const toast = (msg) => {
@@ -589,6 +711,7 @@
     marked.setOptions({ gfm: true, breaks: false });
     results = loadResults();
     evaluator = loadEvaluator();
+    toolFeedback = localStorage.getItem(TOOL_FEEDBACK_KEY) || '';
     await loadData();
     cases.forEach(c => ensureRecord(c.id));
     saveResults();
@@ -601,8 +724,11 @@
     $('#btn-guidelines').addEventListener('click', () => $('#guidelines-panel').classList.toggle('hidden'));
     $('#btn-export').addEventListener('click', exportJSONL);
     $('#btn-reset').addEventListener('click', resetAll);
-    $('#btn-save').addEventListener('click', saveCurrent);
+    $('#btn-complete').addEventListener('click', () => completeCurrent(false));
+    $('#btn-complete-next').addEventListener('click', () => completeCurrent(true));
     $('#btn-load-file').addEventListener('click', () => $('#file-input').click());
+    const tf = $('#tool-feedback');
+    if (tf) { tf.value = toolFeedback; tf.addEventListener('input', () => { toolFeedback = tf.value; localStorage.setItem(TOOL_FEEDBACK_KEY, toolFeedback); }); }
     $('#file-input').addEventListener('change', (e) => {
       const f = e.target.files?.[0];
       if (f) loadFromFile(f);

@@ -138,7 +138,7 @@ code, pre, .mono {
 @media (max-width: 900px) {
   .cmp-grid { grid-template-columns: 1fr; }
 }
-.cmp-header { position: sticky; top: 7.5rem; z-index: 10; }
+.cmp-header { margin-bottom: 4px; }
 .cmp-head {
   display: flex;
   align-items: center;
@@ -176,6 +176,52 @@ code, pre, .mono {
   background: #fafafa;
 }
 .cmp-raw .md-body { max-height: 420px; overflow-y: auto; }
+
+/* Score buttons (1~5, no default) */
+.score-btns { display: flex; gap: 6px; }
+.score-btn {
+  flex: 1;
+  height: 34px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms, border-color 120ms, color 120ms;
+}
+.score-btn:hover { background: #f1f5f9; }
+.score-btn.active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+
+/* Deduction group subheader */
+.ded-group {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  margin: 6px 0 2px;
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+/* Sticky case summary chips */
+.sum-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: #334155;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+.sum-chip.sum-id { background: #0f172a; color: #fff; border-color: #0f172a; font-weight: 600; }
+.sum-chip.sum-src { color: #64748b; background: transparent; border-style: dashed; }
 
 .toast-show {
   display: block !important;

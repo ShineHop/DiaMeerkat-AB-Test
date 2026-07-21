@@ -46,6 +46,11 @@
         </div>
       </div>
     </div>
+
+    <!-- Sticky case summary — key patient info stays visible while scrolling -->
+    <div class="border-t border-slate-100 bg-slate-50/80">
+      <div id="case-summary" class="max-w-[100rem] mx-auto px-6 py-1.5 flex flex-wrap items-center gap-1.5"></div>
+    </div>
   </header>
 
   <!-- Guidelines Drawer -->
@@ -53,14 +58,25 @@
     <div class="max-w-[100rem] mx-auto px-6 py-5 prose prose-sm max-w-none">
       <h3 class="!mt-0">📋 평가 가이드라인</h3>
 
+      <div class="p-3 rounded-lg bg-sky-50 border border-sky-200 not-prose">
+        <p class="text-sm font-semibold text-sky-900 mb-1">ℹ️ 시작 전 안내</p>
+        <ul class="text-sm text-sky-900 list-disc pl-5 space-y-0.5">
+          <li><b>예상 소요 시간</b>: 케이스당 약 3~5분입니다. 중간에 종료해도 입력 내용은 자동 저장되며, 다음 접속 시 이어서 진행할 수 있습니다.</li>
+          <li><b>권장 사용 환경</b>: PC + 최신 Chrome/Edge, 화면 폭 1280px 이상을 권장합니다. (3열 비교가 넓게 표시됩니다.)</li>
+          <li><b>개인정보·보안</b>: 데이터는 브라우저 안에서만 처리되며 서버로 전송·업로드되지 않습니다. 평가 결과와 평가자 정보는 브라우저(localStorage)에만 저장되고, 내보내기(Export) 파일에만 포함됩니다.</li>
+          <li><b>오류 발생 시</b>: 화면이 비정상이면 새로고침하세요(입력은 보존됩니다). 데이터가 안 보이면 사이드바의 <b>📁 JSONL 파일 불러오기</b>로 다시 로드하세요. 반복되는 문제는 사이드바의 <b>🛠 도구 개선 피드백</b>에 남겨 주세요.</li>
+        </ul>
+      </div>
+
       <h4>점수 부여 기준 (1~5점)</h4>
       <ul>
-        <li><strong>5점</strong>: 전문의가 외래에서 거의 그대로 참고할 수 있을 정도로 적절함</li>
-        <li><strong>4점</strong>: 전반적으로 적절하나, 일부 경미한 보완이나 확인이 필요함</li>
-        <li><strong>3점</strong>: 참고는 가능하지만, 실제 처방 전 의사의 수정·검토가 상당히 필요함</li>
-        <li><strong>2점</strong>: 중요한 오류나 누락이 있어 처방 보조 도구로 활용하기 어려움</li>
-        <li><strong>1점</strong>: 중대한 임상적/제도적 문제가 있어 실제 처방 보조에 부적절함</li>
+        <li><strong>5점</strong>: 외래에서 거의 그대로 참고 가능한 수준</li>
+        <li><strong>4점</strong>: 전반적으로 적절하나 일부 보완 필요</li>
+        <li><strong>3점</strong>: 참고는 가능하지만 상당한 수정·검토 필요</li>
+        <li><strong>2점</strong>: 주요 문제가 있어 제한적으로만 참고 가능</li>
+        <li><strong>1점</strong>: 중대한 문제가 있어 사용 부적절</li>
       </ul>
+      <p class="text-slate-500"><b>※ 각 항목은 독립적으로 평가해 주십시오.</b> 예를 들어 의학적으로는 타당한 처방이라도 국내 급여 기준상 실제 처방이 어렵다면, 임상 안전성 항목에서는 높게 평가할 수 있으나 보험·제도 항목에서는 감점할 수 있습니다. <b>점수 기본값은 없으며(미평가), 세 모델의 모든 항목 점수와 최종 선호도를 입력해야 완료 처리됩니다.</b></p>
 
       <div class="p-3 rounded-lg bg-amber-50 border border-amber-200 not-prose">
         <p class="text-sm font-semibold text-amber-900 mb-1">⚠️ 현재 처방(Answer Prescription) 표시 안내</p>
@@ -72,23 +88,20 @@
       </div>
 
       <h4>1-1. 임상적 안전성 및 타당성</h4>
-      <p>환자의 현재 상태, 검사 수치, 동반질환, 기존 치료력을 고려했을 때 처방 제안이 의학적으로 타당하고 안전한가?</p>
+      <p>환자 상태·검사 수치·동반질환·기존 치료력을 고려할 때 처방이 의학적으로 타당하고 안전한가?</p>
       <ul>
         <li>최신 당뇨병 진료지침 및 일반적인 임상 의사결정 흐름에 부합하는가?</li>
-        <li>신기능, 간기능, 저혈당 위험, 고령/취약성, 심혈관질환, CKD, HF 등 환자별 위험요인을 적절히 반영했는가?</li>
-        <li>금기/주의 약제를 피하고, 필요한 경우 용량 조절이나 감량을 제시했는가?</li>
+        <li><b>신기능(eGFR)</b>을 고려해 금기·주의·용량 조절의 필요성을 판단했는가? (간기능, 저혈당 위험, 고령/취약성, CKD·HF·ASCVD 등 위험요인 포함)</li>
         <li>혈당 조절 상태 대비 불필요한 약제 추가, 과도한 증량, 부적절한 인슐린 강화 등 과잉 치료를 하지 않았는가?</li>
-        <li>반대로 필요한 치료 강화/감량/약제 변경을 놓치지 않았는가?</li>
+        <li><b>기존 처방을 불필요하게 변경하지 않되, 필요한 치료 강화·감량·중단·변경을 적절히 제안했는가?</b></li>
       </ul>
 
       <h4>1-2. 보험·제도 부합성 및 실제 처방 가능성</h4>
-      <p>국내 보험 급여 기준과 실제 외래 처방 관행을 고려했을 때, 제안된 처방이 현실적으로 처방 가능한가?</p>
+      <p>임상적 타당성과 별개로, 국내 급여·심사 기준과 실제 처방 가능성 관점에서 판단합니다.</p>
       <ul>
-        <li>국내 건강보험 급여 기준 및 심사 기준에 부합하는가?</li>
-        <li>HbA1c, 선행 약제 사용 여부, 병용 제한, eGFR 기준 등 급여 판단 요소를 고려했는가?</li>
-        <li>급여 가능성이 불확실한 경우 명확히 표시했는가?</li>
-        <li>임상적 근거 없이 기존 약제를 과도하게 중단·교체하지 않았는가?</li>
-        <li>급여/비급여/보조 약제를 적절히 구분했는가?</li>
+        <li>국내 건강보험 급여 기준, 병용 제한, 심사 기준에 부합하는 처방인가?</li>
+        <li>HbA1c, 선행 약제, 병용 약제, <b>eGFR에 따른 급여·심사 기준</b>, 진단명, 필요 서류 등 급여 판단 요소를 고려했는가?</li>
+        <li>급여 가능성, 삭감 가능성, 필요 서류 또는 진단 코드가 불확실한 경우 이를 명확히 표시했는가?</li>
       </ul>
 
       <h4>1-3. 외래 활용성 및 가독성</h4>
@@ -96,9 +109,9 @@
       <ul>
         <li>유지/중단/변경/신규 처방이 명확히 구분되어 있는가?</li>
         <li>약제명, 용량, 빈도, 증량/감량 계획이 충분히 구체적인가?</li>
-        <li>처방 근거가 환자 정보와 연결되어 간결하게 설명되어 있는가?</li>
-        <li>추적 관찰 계획·다음 내원 시점·필요한 검사 항목이 환자 위험도에 맞게 제시되어 있는가?</li>
-        <li>불확실한 부분/추가 확인이 필요한 정보를 명확히 표시했는가?</li>
+        <li><b>처방 변경 또는 위험 약제 사용 시 필요한 추적 관찰 계획, 검사 항목 및 모니터링 계획이 제시되어 있는가?</b></li>
+        <li>환자 정보 부족, 추가 문진·검사·확인이 필요한 부분 등 불확실성을 명확히 표시했는가?</li>
+        <li>답변이 지나치게 장황하지 않고 핵심 처방안을 빠르게 파악할 수 있는가?</li>
       </ul>
     </div>
   </section>
@@ -120,6 +133,12 @@
           <input id="file-input" type="file" accept=".json,.jsonl,application/json,application/jsonl" class="hidden" />
           <p class="text-[10px] text-slate-400 mt-2 leading-snug">환자 EMR 데이터는 브라우저 안에서만 처리되며 외부로 전송·업로드되지 않습니다.</p>
         </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">🛠 도구 개선 피드백</label>
+          <p class="text-[10px] text-slate-400 mb-1.5 leading-snug">평가 도구에 대한 수정·개선·보완 의견을 자유롭게 남겨 주세요. (결과 파일에 함께 저장)</p>
+          <textarea id="tool-feedback" rows="4" class="w-full text-xs px-2 py-1.5 border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-400" placeholder="예: 특정 항목이 헷갈림, 추가되면 좋을 기능 등"></textarea>
+        </div>
       </div>
     </aside>
 
@@ -138,7 +157,7 @@
       <!-- Evaluation Form -->
       <article class="bg-white border border-slate-200 rounded-xl p-6">
         <h2 class="text-base font-semibold text-slate-800 mb-1">📝 평가 항목</h2>
-        <p class="text-xs text-slate-500 mb-5">입력은 자동 저장되며, <b>완료 처리</b> 버튼을 눌러야 해당 케이스가 ✅ 완료로 표시됩니다.</p>
+        <p class="text-xs text-slate-500 mb-5">입력 내용은 <b>자동 저장</b>됩니다. 평가가 끝난 케이스는 아래 <b>완료 표시</b> 버튼을 눌러 진행률에 반영해 주세요. (필수 점수·선호도를 모두 입력해야 완료 처리됩니다.)</p>
 
         <!-- 1. Comprehensive -->
         <h3 class="text-sm font-semibold text-slate-700 mb-3">1. 포괄 평가 (Comprehensive Evaluation)</h3>
@@ -157,12 +176,17 @@
           <div id="preference-group" class="space-y-1.5"></div>
         </section>
 
-        <!-- Save -->
-        <div class="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between gap-3">
-          <div id="save-status" class="text-xs text-slate-500">아직 저장되지 않음</div>
-          <button id="btn-save" class="text-sm px-4 py-2 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition shadow-sm">
-            💾 임시 저장 및 문항 완료 처리
-          </button>
+        <!-- Complete -->
+        <div class="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between gap-3 flex-wrap">
+          <div id="save-status" class="text-xs text-slate-500">자동 저장됨 (완료 미표시)</div>
+          <div class="flex items-center gap-2">
+            <button id="btn-complete" class="text-sm px-4 py-2 rounded-md border border-emerald-600 text-emerald-700 font-medium hover:bg-emerald-50 transition">
+              ✅ 완료 표시
+            </button>
+            <button id="btn-complete-next" class="text-sm px-4 py-2 rounded-md bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition shadow-sm">
+              완료 표시 후 다음 케이스 ➡️
+            </button>
+          </div>
         </div>
       </article>
 
