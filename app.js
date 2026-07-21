@@ -124,7 +124,36 @@
   // Rendering
   // ---------------------------------------------------------------------------
   const $ = (sel) => document.querySelector(sel);
-  const md = (s) => marked.parse(s || '_(내용 없음)_');
+
+  // Render markdown while protecting LaTeX math ($...$ / $$...$$) from being
+  // mangled by the markdown parser (e.g. underscores, backslashes, asterisks).
+  // Math is swapped out for sentinel placeholders, markdown runs, then the
+  // original math is restored so KaTeX auto-render can typeset it in the DOM.
+  const MATH_RE = /\$\$([\s\S]+?)\$\$|\$([^\n$]+?)\$/g;
+  const md = (s) => {
+    const src = s || '';
+    const store = [];
+    const guarded = src.replace(MATH_RE, (m) => `${store.push(m) - 1}`);
+    let html = marked.parse(guarded);
+    html = html.replace(/(\d+)/g, (_, i) => store[Number(i)]);
+    return html;
+  };
+
+  // Typeset any $...$ / $$...$$ inside an element using KaTeX (no-op if the
+  // library failed to load; pre/code blocks are ignored so lab dumps are safe).
+  const typesetMath = (el) => {
+    if (!el || typeof window.renderMathInElement !== 'function') return;
+    try {
+      window.renderMathInElement(el, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false },
+        ],
+        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+        throwOnError: false,
+      });
+    } catch (e) { /* leave raw text if typesetting fails */ }
+  };
 
   const updateProgress = () => {
     const total = cases.length;
@@ -197,8 +226,10 @@
     ANSWER_SECTIONS.forEach(sec => {
       const texts = SLOTS.map(s => getSectionText(c[mapping[s]], sec.key, sec.sub));
       if (!texts.some(t => t)) return; // hide sections empty across all models
+      // 환자 상태 분석은 길어서 셀 내부 스크롤로 표시
+      const scrollCls = sec.key === 'patient_status_analysis' ? ' cmp-cell--scroll' : '';
       const cols = SLOTS.map((s, i) => `
-        <div class="cmp-cell">
+        <div class="cmp-cell${scrollCls}">
           <div class="md-body prose prose-sm max-w-none">${texts[i] ? md(texts[i]) : '<span class="text-slate-400 text-sm">(내용 없음)</span>'}</div>
         </div>`).join('');
       sectionsHtml += `
@@ -348,6 +379,9 @@
     renderEMR(c);
     renderComparison(c);
     renderEvaluationForm(c);
+    // Typeset LaTeX ($...$) in EMR + model answers into real math symbols.
+    typesetMath($('#emr-card'));
+    typesetMath($('#comparison'));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

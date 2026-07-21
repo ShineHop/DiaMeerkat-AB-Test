@@ -164,6 +164,11 @@ code, pre, .mono {
   background: #fff;
   min-height: 44px;
 }
+/* 환자 상태 분석: 내용이 길어 셀 내부 스크롤 */
+.cmp-cell--scroll {
+  max-height: 320px;
+  overflow-y: auto;
+}
 .cmp-raw {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
