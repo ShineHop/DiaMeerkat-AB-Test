@@ -17,11 +17,29 @@
 
   const SCORE_DOMAINS = [
     { key: 'clinical_safety', title: '1-1. 임상적 안전성 및 타당성',
-      desc: '환자 상태·검사 수치·동반질환·기존 치료력을 고려할 때 의학적으로 타당하고 안전한가? (기존 처방을 불필요하게 변경하지 않되, 필요한 강화·감량·중단·변경을 적절히 제안했는가?)' },
+      desc: '환자 상태·검사 수치·동반질환·기존 치료력을 고려할 때 의학적으로 타당하고 안전한가?',
+      considerations: [
+        '최신 당뇨병 진료지침 및 일반적인 임상 의사결정 흐름에 부합하는가?',
+        '신기능(eGFR)을 고려해 금기·주의·용량 조절의 필요성을 판단했는가? (간기능, 저혈당 위험, 고령/취약성, CKD·HF·ASCVD 등 위험요인 포함)',
+        '혈당 조절 상태 대비 불필요한 약제 추가, 과도한 증량, 부적절한 인슐린 강화 등 과잉 치료를 하지 않았는가?',
+        '기존 처방을 불필요하게 변경하지 않되, 필요한 치료 강화·감량·중단·변경을 적절히 제안했는가?',
+      ] },
     { key: 'insurance_compliance', title: '1-2. 보험·제도 부합성 및 실제 처방 가능성',
-      desc: '국내 급여 기준·병용 제한·심사 기준에 부합하며 실제로 처방 가능한가? (임상 타당성과 별개로, 급여·심사 관점에서 판단)' },
+      desc: '임상적 타당성과 별개로, 국내 급여·심사 기준과 실제 처방 가능성 관점에서 판단합니다.',
+      considerations: [
+        '국내 건강보험 급여 기준, 병용 제한, 심사 기준에 부합하는 처방인가?',
+        'HbA1c, 선행 약제, 병용 약제, eGFR에 따른 급여·심사 기준, 진단명, 필요 서류 등 급여 판단 요소를 고려했는가?',
+        '급여 가능성, 삭감 가능성, 필요 서류 또는 진단 코드가 불확실한 경우 이를 명확히 표시했는가?',
+      ] },
     { key: 'usability', title: '1-3. 외래 활용성 및 가독성',
-      desc: '바쁜 외래에서 빠르게 읽고 처방 의사결정에 활용하기 쉬운가?' },
+      desc: '바쁜 외래에서 빠르게 읽고 처방 의사결정에 활용하기 쉬운가?',
+      considerations: [
+        '유지/중단/변경/신규 처방이 명확히 구분되어 있는가?',
+        '약제명, 용량, 빈도, 증량/감량 계획이 충분히 구체적인가?',
+        '처방 변경 또는 위험 약제 사용 시 필요한 추적 관찰 계획, 검사 항목 및 모니터링 계획이 제시되어 있는가?',
+        '환자 정보 부족, 추가 문진·검사·확인이 필요한 부분 등 불확실성을 명확히 표시했는가?',
+        '답변이 지나치게 장황하지 않고 핵심 처방안을 빠르게 파악할 수 있는가?',
+      ] },
   ];
 
   // Score labels shown as a legend / tooltip under each domain.
@@ -348,7 +366,8 @@
         <div class="flex items-center justify-between mb-1">
           <h2 class="text-base font-semibold text-slate-800">🆚 모델 답변 비교 (블라인드 A / B / C)</h2>
         </div>
-        <p class="text-xs text-slate-500 mb-3">각 공통 항목별로 세 모델(A/B/C)의 답변을 같은 행에 나란히 배치했습니다.</p>
+        <p class="text-xs text-slate-500 mb-2">각 공통 항목별로 세 모델(A/B/C)의 답변을 같은 행에 나란히 배치했습니다.</p>
+        <p class="text-xs font-medium text-rose-600 border-l-4 border-rose-400 bg-rose-50 px-3 py-2 rounded-r mb-3">⚠️ A·B·C는 각 케이스마다 무작위로 배정됩니다. 모델의 순서나 라벨에 영향받지 마시고, 각 답변을 독립적으로 평가해 주십시오.</p>
         <div class="cmp-grid cmp-header">${headerCols}</div>
         <div class="mt-2 space-y-4">${sectionsHtml}</div>
         <p class="cmp-title mt-4">🔍 원본 모델 답변 (Raw Output) — 필요 시 펼쳐 보기</p>
@@ -377,11 +396,25 @@
     const compEl = $('#form-comprehensive');
     compEl.innerHTML = `<p class="text-[11px] text-slate-400 mb-4">${escapeHtml(legendLine)}</p>`;
     SCORE_DOMAINS.forEach(d => {
+      const considerationsHtml = (d.considerations || []).map(item => `<li>${escapeHtml(item)}</li>`).join('');
       const block = document.createElement('div');
       block.innerHTML = `
-        <h4 class="text-sm font-semibold text-slate-700">${escapeHtml(d.title)}</h4>
-        <p class="text-xs text-slate-500 mt-0.5 mb-3">${escapeHtml(d.desc)}</p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex-1">
+            <h4 class="text-sm font-semibold text-slate-700">${escapeHtml(d.title)}</h4>
+            <p class="text-xs text-slate-500 mt-0.5">${escapeHtml(d.desc)}</p>
+          </div>
+          <button type="button" class="considerations-toggle shrink-0 text-[11px] px-2 py-1 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 inline-flex items-center gap-1"
+                  data-target="cons-${d.key}" aria-expanded="false">
+            <span>💡 평가 시 고려사항</span>
+            <span class="cons-chev transition-transform">▾</span>
+          </button>
+        </div>
+        <div id="cons-${d.key}" class="hidden mt-2 mb-1 p-3 rounded-lg bg-amber-50 border border-amber-200">
+          <p class="text-xs font-medium text-amber-900 mb-1.5">평가 시 다음을 함께 고려해 주십시오.</p>
+          <ul class="list-disc pl-5 text-xs text-amber-900 space-y-1 leading-relaxed">${considerationsHtml}</ul>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
           ${SLOTS.map(side => {
             const val = rec.scores[side][d.key];
             return `
@@ -449,6 +482,18 @@
   };
 
   const bindFormEvents = (caseId) => {
+    // "💡 평가 시 고려사항" 펼침/접힘
+    document.querySelectorAll('.considerations-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(btn.dataset.target);
+        if (!target) return;
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!expanded));
+        target.classList.toggle('hidden');
+        const chev = btn.querySelector('.cons-chev');
+        if (chev) chev.style.transform = expanded ? '' : 'rotate(180deg)';
+      });
+    });
     document.querySelectorAll('.score-btns').forEach(group => {
       const { side, domain } = group.dataset;
       group.querySelectorAll('.score-btn').forEach(btn => {
@@ -486,6 +531,19 @@
     if (reason) reason.addEventListener('input', () => { ensureRecord(caseId).preference_reason = reason.value; saveResults(); });
   };
 
+  // Reflect completion state on the toggle button (label + style).
+  const updateCompleteBtn = (rec) => {
+    const btn = $('#btn-complete');
+    if (!btn) return;
+    if (rec.is_completed) {
+      btn.textContent = '↩️ 완료 표시 취소';
+      btn.classList.add('is-completed');
+    } else {
+      btn.textContent = '✅ 완료 표시';
+      btn.classList.remove('is-completed');
+    }
+  };
+
   const updateSaveStatus = (id) => {
     const rec = ensureRecord(id);
     const el = $('#save-status');
@@ -496,6 +554,7 @@
       const detail = missing.length ? ` · 필수 미입력 ${missing.length}개` : ' · 필수 항목 입력 완료';
       el.innerHTML = `<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-300"></span> 자동 저장됨 (완료 미표시)${escapeHtml(detail)}</span>`;
     }
+    updateCompleteBtn(rec);
   };
 
   // ---------------------------------------------------------------------------
@@ -542,6 +601,22 @@
     }
     toast(`✅ Case ${currentId} 완료 표시됨`);
     return true;
+  };
+
+  // "완료 표시" button toggles: complete → click → un-complete → click → complete …
+  const toggleComplete = () => {
+    if (!currentId) return;
+    const rec = ensureRecord(currentId);
+    if (rec.is_completed) {
+      rec.is_completed = false;
+      saveResults();
+      renderCaseList();
+      updateProgress();
+      updateSaveStatus(currentId);
+      toast(`↩️ Case ${currentId} 완료 표시를 취소했습니다`);
+      return;
+    }
+    completeCurrent(false); // validates required fields, then marks complete
   };
 
   const exportJSONL = () => {
@@ -761,7 +836,7 @@
     setGuidelinesTab('system');
     $('#btn-export').addEventListener('click', exportJSONL);
     $('#btn-reset').addEventListener('click', resetAll);
-    $('#btn-complete').addEventListener('click', () => completeCurrent(false));
+    $('#btn-complete').addEventListener('click', () => toggleComplete());
     $('#btn-complete-next').addEventListener('click', () => completeCurrent(true));
     $('#btn-load-file').addEventListener('click', () => $('#file-input').click());
     const tf = $('#tool-feedback');

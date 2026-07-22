@@ -177,6 +177,13 @@ code, pre, .mono {
 }
 .cmp-raw .md-body { max-height: 420px; overflow-y: auto; }
 
+/* Complete toggle in its 'completed' state (click to un-complete) */
+#btn-complete.is-completed {
+  background: #fff7ed;
+  border-color: #fdba74;
+  color: #b45309;
+}
+
 /* Score buttons (1~5, no default) */
 .score-btns { display: flex; gap: 6px; }
 .score-btn {
