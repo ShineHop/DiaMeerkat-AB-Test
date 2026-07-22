@@ -2,7 +2,7 @@
 (() => {
   'use strict';
 
-  const STORAGE_KEY = 'abc_test_eval_results_v1';
+  const STORAGE_KEY = 'abc_test_eval_results_v2';
   const EVALUATOR_KEY = 'abc_test_evaluator_v1';
   const TOOL_FEEDBACK_KEY = 'abc_test_tool_feedback_v1';
   // Optional local convenience only. On a public host this 404s and the app
@@ -56,10 +56,11 @@
     { group: '임상 안전성', items: [
       '절대 금기 또는 중대한 주의 약제 제안',
       '주요 위험요인(신기능·간기능·저혈당·고령·CKD·HF·ASCVD) 미반영',
-      '필요한 치료 강화·감량·중단·변경 누락, 또는 불필요한 약제 추가·과도한 증량',
+      '필요한 치료 강화·감량·중단·변경 누락',
+      '불필요한 약제 추가·과도한 증량·부적절한 인슐린 강화',
     ] },
     { group: '보험·제도', items: [
-      '국내 급여 기준 또는 병용 제한 위반',
+      '명백한 국내 급여 기준 또는 병용 제한 위반',
       '급여 가능성이 불확실한데 이를 표시하지 않음',
       '필요 진단명·검사 기준·선행 약제·서류 요건 미반영',
     ] },
