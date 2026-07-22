@@ -317,11 +317,13 @@
         <ul class="text-sm list-disc pl-5 space-y-0.5 border border-slate-200 rounded-lg p-3 bg-slate-50/50">${prev}</ul>
       </div>
 
-      <details class="mt-4 rounded-lg border border-amber-200 bg-amber-50/60 p-3">
-        <summary class="cursor-pointer text-sm font-semibold text-amber-900 select-none">✅ 현재 처방 (Answer Prescription) — 필요 시 펼쳐 보기</summary>
-        <p class="text-xs text-amber-800 mt-2 mb-2">⚠️ 실제 처방(정답)입니다. 모델 답변 평가 시 정답에 끌려가는 편향(anchoring)을 막기 위해 기본 숨김 처리했습니다. 판단이 어려울 때만 참고하세요.</p>
-        <ul class="text-sm list-disc pl-5 space-y-0.5">${ans}</ul>
-      </details>
+      <div class="mt-4 rounded-lg border border-amber-200 bg-amber-50/60 p-3">
+        <p class="text-xs text-amber-800 mb-2">⚠️ 실제 처방(정답)입니다. 모델 답변 평가 시 정답에 끌려가는 편향(anchoring)을 막기 위해 기본 숨김 처리했습니다. 판단이 어려울 때만 참고하세요.</p>
+        <details>
+          <summary class="cursor-pointer text-sm font-semibold text-amber-900 select-none">✅ 현재 처방 (Answer Prescription) — 필요 시 펼쳐 보기</summary>
+          <ul class="text-sm list-disc pl-5 space-y-0.5 mt-2">${ans}</ul>
+        </details>
+      </div>
     `;
   };
 
