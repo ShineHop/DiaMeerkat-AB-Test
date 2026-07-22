@@ -740,6 +740,18 @@
     toast('🗑 초기화 완료');
   };
 
+  // Reset only the current case's evaluation (scores/deductions/preference).
+  const resetCurrentCase = () => {
+    if (!currentId) return;
+    if (!confirm(`Case ${currentId}의 평가 내용을 초기화하시겠습니까?`)) return;
+    results[currentId] = defaultRecord();
+    saveResults();
+    renderCaseList();
+    updateProgress();
+    renderEvaluationForm(cases.find(c => c.id === currentId));
+    toast(`🗑 Case ${currentId} 평가를 초기화했습니다`);
+  };
+
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
@@ -839,6 +851,7 @@
     setGuidelinesTab('system');
     $('#btn-export').addEventListener('click', exportJSONL);
     $('#btn-reset').addEventListener('click', resetAll);
+    $('#btn-reset-case').addEventListener('click', resetCurrentCase);
     $('#btn-complete').addEventListener('click', () => toggleComplete());
     $('#btn-complete-next').addEventListener('click', () => completeCurrent(true));
     $('#btn-load-file').addEventListener('click', () => $('#file-input').click());
